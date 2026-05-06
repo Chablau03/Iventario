@@ -709,7 +709,6 @@
             
             let item = equippedItems[slotName];
             if (item && item.id) {
-                // Envia o item desequipado direto para a Mochila (grid-adventurer)
                 let targetIndex = gridMochila.findIndex(slot => !slot.id);
                 
                 if (targetIndex !== -1) {
@@ -749,7 +748,6 @@
             if (item && item.id) {
                 let targetGrid = 'grid-equipments'; 
                 
-                // Determina o grid de destino pelo campo "tipo" do item
                 if (item.tipo) {
                     const tipo = item.tipo.toLowerCase();
                     if (tipo.includes('equipamento') || tipo.includes('arma') || tipo.includes('armadura')) {
@@ -908,7 +906,7 @@
                 const sourceGridId = sourceData.gridId;
                 const sourceIndex = parseInt(sourceData.index);
 
-                if (sourceGridId === targetGridId && sourceIndex === targetIndex) return;
+                // Se o modo for aventureiro, só permite soltar no grid da mochila
                 if (modoAtual === "aventureiro" && targetGridId !== 'grid-adventurer') return;
 
                 let sourceArray = getGridArray(sourceGridId);
@@ -917,6 +915,7 @@
                 let sourceItem = sourceArray[sourceIndex];
                 let targetItem = targetArray[targetIndex];
 
+                // Realiza a troca (ou move se o destino estiver vazio)
                 sourceArray[sourceIndex] = targetItem;
                 targetArray[targetIndex] = sourceItem;
 
