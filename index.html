@@ -88,6 +88,40 @@
             background-color: #444;
         }
 
+        /* Container do botão inferior laranja */
+        .bottom-container {
+            position: absolute;
+            bottom: 4%;
+            left: 4%;
+            z-index: 10;
+        }
+
+        .orange-action-button {
+            background-color: #e67e22; /* Cor laranja de destaque */
+            background-image: none; /* Remove a textura padrão */
+            color: #ffffff;
+            width: 180px;
+            height: 60px;
+            border: 2px solid #d35400;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            transition: background-color 0.2s, transform 0.2s;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .orange-action-button:hover {
+            background-color: #d35400;
+            transform: scale(1.05);
+        }
+
         /* Container do Vídeo do Personagem (Lado Esquerdo) */
         .character-container {
             position: absolute;
@@ -301,6 +335,10 @@
             <button class="btn-mode" onclick="alternarModo()">Alternar Modo</button>
         </div>
 
+        <div class="bottom-container">
+            <button class="action-button orange-action-button" title="Conferir Lista" onclick="conferirLista()">Conferir Lista</button>
+        </div>
+
         <div class="character-container">
             <video class="character-video" src="https://www.dropbox.com/scl/fi/rs8zvfldjjbpq3qsiiwzh/lv_0_20260504020207.mp4?rlkey=t0ghvqvj3caif79f8gr28b8sy&st=e02pb33e&raw=1" autoplay loop muted playsinline></video>
         </div>
@@ -316,7 +354,6 @@
             <div class="action-button default-action-button" title="Equipamentos" onclick="showGrid('grid-equipments')">Equipamento</div>
             <div class="action-button default-action-button" title="Itens" onclick="showGrid('grid-items')">Item</div>
             <div class="action-button default-action-button" title="Materiais" onclick="showGrid('grid-materials')">Materiais</div>
-            <div class="action-button default-action-button" title="Conferir Lista" onclick="conferirLista()">Conferir Lista</div>
         </div>
 
         <div id="grid-adventurer" class="inventory-grid" style="display: none;"></div>
@@ -745,3 +782,4 @@
     </script>
 </body>
 </html>
+
