@@ -281,6 +281,7 @@
             width: 55%;
             height: 55%;
             object-fit: contain;
+            pointer-events: auto;
         }
 
         /* Menu de opções do item */
@@ -373,17 +374,14 @@
     </script>
 
     <script>
-        // Salva o inventário completo incluindo a localização e o índice de cada item
         async function salvarInventarioNoFirebase() {
             if (typeof window.db === 'undefined') return;
             try {
-                // Remove os dados anteriores para evitar items duplicados ou órfãos
                 const querySnapshot = await window.getDocs(window.collection(window.db, "inventario"));
                 for (const docSnap of querySnapshot.docs) {
                     await window.deleteDoc(window.doc(window.db, "inventario", docSnap.id));
                 }
 
-                // Salva todas as grades
                 for (let i = 0; i < 16; i++) {
                     if (gridEquipamentos[i] && gridEquipamentos[i].id) {
                         await window.setDoc(window.doc(window.db, "inventario", String(gridEquipamentos[i].id)), {
@@ -415,7 +413,6 @@
                     }
                 }
 
-                // Salva itens equipados
                 for (const [key, item] of Object.entries(equippedItems)) {
                     if (item && item.id) {
                         await window.setDoc(window.doc(window.db, "inventario", String(item.id)), {
@@ -430,11 +427,9 @@
             }
         }
 
-        // Carrega o inventário e posiciona os itens de acordo com os dados gravados
         async function carregarDoFirebase() {
             if (typeof window.db === 'undefined') return;
             try {
-                // Limpa grids
                 gridEquipamentos = getEmptyGrid();
                 gridMochila = getEmptyGrid();
                 gridItens = getEmptyGrid();
@@ -478,11 +473,10 @@
             }
         }
 
-        // Adiciona item da lista para o primeiro slot livre da grade de equipamentos
         async function adicionarItemDaLista() {
             const select = document.getElementById('select-item');
             const indexSelecionado = select.value;
-            const itemOriginal = window.bancoDeItens[indexSelecionado];
+            const itemOriginal = window.bancoDeItens[constSelecionado];
 
             if (!itemOriginal) {
                 alert("Nenhum item selecionado ou lista vazia.");
@@ -589,7 +583,6 @@
                 badge.textContent = "Modo ADM Ativo";
                 botoesTopo.style.display = "flex";
                 
-                // Permanece na mochila ao alternar para ADM
                 showGrid('grid-adventurer');
             }
             atualizarTudo();
@@ -635,15 +628,19 @@
                 const item = itemsArray[i];
                 const slotDiv = document.createElement('div');
                 slotDiv.className = 'grid-slot';
+                slotDiv.dataset.gridId = gridId;
+                slotDiv.dataset.index = i;
                 
                 if (item && item.id) {
                     slotDiv.title = item.nome;
+                    slotDiv.setAttribute('draggable', 'true');
                     slotDiv.innerHTML = `
                         <img src="${item.img || item.imagem}" alt="${item.nome}">
                         ${criarMenuGrid(gridId, i, item)}
                     `;
                 } else {
                     slotDiv.title = "Slot Vazio";
+                    slotDiv.setAttribute('draggable', 'false');
                 }
                 
                 grid.appendChild(slotDiv);
@@ -709,12 +706,10 @@
         }
 
         async function desequiparItem(slotName) {
-            // Permite desequipar tanto no modo ADM quanto no modo Aventureiro
             if (modoAtual !== "adm" && modoAtual !== "aventureiro") return;
             
             let item = equippedItems[slotName];
             if (item && item.id) {
-                // Vai direto para a mochila
                 let targetIndex = gridMochila.findIndex(slot => !slot.id);
                 
                 if (targetIndex !== -1) {
@@ -865,8 +860,65 @@
             });
         }
 
+        // Adicionando a Mecânica de Arrastar e Soltar (Drag and Drop)
+        document.addEventListener('dragstart', (e) => {
+            const slot = e.target.closest('.grid-slot');
+            if (slot && slot.querySelector('img')) {
+                e.dataTransfer.setData('text/plain', JSON.stringify({
+                    gridId: slot.dataset.gridId,
+                    index: slot.dataset.index
+                }));
+                slot.style.opacity = '0.5';
+            } else {
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('dragend', (e) => {
+            const slot = e.target.closest('.grid-slot');
+            if (slot) {
+                slot.style.opacity = '';
+            }
+        });
+
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            const slot = e.target.closest('.grid-slot');
+            if (!slot) return;
+
+            const targetGridId = slot.dataset.gridId;
+            const targetIndex = parseInt(slot.dataset.index);
+
+            try {
+                const sourceData = JSON.parse(e.dataTransfer.getData('text/plain'));
+                const sourceGridId = sourceData.gridId;
+                const sourceIndex = parseInt(sourceData.index);
+
+                if (sourceGridId === targetGridId && sourceIndex === targetIndex) return;
+                if (modoAtual === "aventureiro" && targetGridId !== 'grid-adventurer') return;
+
+                let sourceArray = getGridArray(sourceGridId);
+                let targetArray = getGridArray(targetGridId);
+
+                let sourceItem = sourceArray[sourceIndex];
+                let targetItem = targetArray[targetIndex];
+
+                // Efetua a troca de posição
+                sourceArray[sourceIndex] = targetItem;
+                targetArray[targetIndex] = sourceItem;
+
+                await salvarInventarioNoFirebase();
+                atualizarTudo();
+            } catch (err) {
+                console.error("Erro ao movimentar o item:", err);
+            }
+        });
+
         document.addEventListener("DOMContentLoaded", async () => {
-            // Carrega os dados do Firebase
             await carregarDoFirebase();
             atualizarTudo();
 
