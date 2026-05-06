@@ -373,53 +373,104 @@
     </script>
 
     <script>
-        // Salva/atualiza o item diretamente no Firestore
-        async function salvarNoFirebase(item) {
+        // Salva o inventário completo incluindo a localização e o índice de cada item
+        async function salvarInventarioNoFirebase() {
             if (typeof window.db === 'undefined') return;
             try {
-                const itemRef = window.doc(window.db, "inventario", String(item.id));
-                await window.setDoc(itemRef, {
-                    id: item.id,
-                    nome: item.nome,
-                    tipo: item.tipo,
-                    valor: item.valor,
-                    imagem: item.img || item.imagem,
-                    salvoEm: new Date().toLocaleString('pt-BR')
-                });
+                // Remove os dados anteriores para evitar items duplicados ou órfãos
+                const querySnapshot = await window.getDocs(window.collection(window.db, "inventario"));
+                for (const docSnap of querySnapshot.docs) {
+                    await window.deleteDoc(window.doc(window.db, "inventario", docSnap.id));
+                }
+
+                // Salva todas as grades
+                for (let i = 0; i < 16; i++) {
+                    if (gridEquipamentos[i] && gridEquipamentos[i].id) {
+                        await window.setDoc(window.doc(window.db, "inventario", String(gridEquipamentos[i].id)), {
+                            ...gridEquipamentos[i],
+                            location: 'grid-equipments',
+                            index: i
+                        });
+                    }
+                    if (gridMochila[i] && gridMochila[i].id) {
+                        await window.setDoc(window.doc(window.db, "inventario", String(gridMochila[i].id)), {
+                            ...gridMochila[i],
+                            location: 'grid-adventurer',
+                            index: i
+                        });
+                    }
+                    if (gridItens[i] && gridItens[i].id) {
+                        await window.setDoc(window.doc(window.db, "inventario", String(gridItens[i].id)), {
+                            ...gridItens[i],
+                            location: 'grid-items',
+                            index: i
+                        });
+                    }
+                    if (gridMateriais[i] && gridMateriais[i].id) {
+                        await window.setDoc(window.doc(window.db, "inventario", String(gridMateriais[i].id)), {
+                            ...gridMateriais[i],
+                            location: 'grid-materials',
+                            index: i
+                        });
+                    }
+                }
+
+                // Salva itens equipados
+                for (const [key, item] of Object.entries(equippedItems)) {
+                    if (item && item.id) {
+                        await window.setDoc(window.doc(window.db, "inventario", String(item.id)), {
+                            ...item,
+                            location: key,
+                            index: 0
+                        });
+                    }
+                }
             } catch (e) {
-                console.error("Erro ao salvar item automaticamente:", e);
+                console.error("Erro ao salvar inventário completo:", e);
             }
         }
 
-        // Exclui o item do Firestore
-        async function excluirDoFirebase(itemId) {
-            if (typeof window.db === 'undefined') return;
-            try {
-                const itemRef = window.doc(window.db, "inventario", String(itemId));
-                await window.deleteDoc(itemRef);
-            } catch (e) {
-                console.error("Erro ao excluir item do Firebase:", e);
-            }
-        }
-
-        // Carrega itens do banco e atualiza na memória
+        // Carrega o inventário e posiciona os itens de acordo com os dados gravados
         async function carregarDoFirebase() {
             if (typeof window.db === 'undefined') return;
             try {
-                const querySnapshot = await window.getDocs(window.collection(window.db, "inventario"));
+                // Limpa grids
                 gridEquipamentos = getEmptyGrid();
-                let index = 0;
+                gridMochila = getEmptyGrid();
+                gridItens = getEmptyGrid();
+                gridMateriais = getEmptyGrid();
+                equippedItems = {
+                    head: {},
+                    left_hand: {},
+                    shoulder: {},
+                    legs: {}
+                };
+
+                const querySnapshot = await window.getDocs(window.collection(window.db, "inventario"));
                 querySnapshot.forEach((doc) => {
-                    const item = doc.data();
-                    if (index < 16) {
-                        gridEquipamentos[index] = {
-                            id: item.id,
-                            nome: item.nome,
-                            img: item.imagem,
-                            tipo: item.tipo,
-                            valor: item.valor
-                        };
-                        index++;
+                    const itemData = doc.data();
+                    const item = {
+                        id: itemData.id,
+                        nome: itemData.nome,
+                        tipo: itemData.tipo,
+                        valor: itemData.valor,
+                        img: itemData.imagem || itemData.img,
+                        origemGrid: itemData.origemGrid
+                    };
+
+                    const loc = itemData.location;
+                    const idx = itemData.index || 0;
+
+                    if (loc === 'grid-equipments' && idx < 16) {
+                        gridEquipamentos[idx] = item;
+                    } else if (loc === 'grid-adventurer' && idx < 16) {
+                        gridMochila[idx] = item;
+                    } else if (loc === 'grid-items' && idx < 16) {
+                        gridItens[idx] = item;
+                    } else if (loc === 'grid-materials' && idx < 16) {
+                        gridMateriais[idx] = item;
+                    } else if (['head', 'left_hand', 'shoulder', 'legs'].includes(loc)) {
+                        equippedItems[loc] = item;
                     }
                 });
             } catch (e) {
@@ -427,7 +478,7 @@
             }
         }
 
-        // Seleciona o item da lista e o salva no Firebase
+        // Adiciona item da lista para o primeiro slot livre da grade de equipamentos
         async function adicionarItemDaLista() {
             const select = document.getElementById('select-item');
             const indexSelecionado = select.value;
@@ -438,7 +489,6 @@
                 return;
             }
 
-            // Cria um novo registro para evitar colisões de ID no Firebase
             const novoItem = {
                 id: Date.now() + Math.random(),
                 nome: itemOriginal.nome,
@@ -450,7 +500,7 @@
             const index = gridEquipamentos.findIndex(slot => !slot.id);
             if (index !== -1) {
                 gridEquipamentos[index] = novoItem;
-                await salvarNoFirebase(novoItem);
+                await salvarInventarioNoFirebase();
                 atualizarTudo();
             } else {
                 alert("Inventário cheio! Exclua um item antes de adicionar outro.");
@@ -632,7 +682,7 @@
             return 'shoulder'; 
         }
 
-        function equiparItem(gridId, index) {
+        async function equiparItem(gridId, index) {
             if (modoAtual !== "adm" && gridId !== 'grid-adventurer') return;
             
             let fromArray = getGridArray(gridId);
@@ -643,20 +693,21 @@
                 
                 let existingItem = equippedItems[slotName];
                 if (existingItem && existingItem.id) {
-                    let firstEmpty = fromArray.findIndex(slot => !slot.id);
-                    if (firstEmpty !== -1) {
-                        fromArray[firstEmpty] = existingItem;
-                    }
+                    fromArray[index] = existingItem;
+                } else {
+                    fromArray[index] = {};
                 }
 
                 equippedItems[slotName] = item;
-                fromArray[index] = {};
+                equippedItems[slotName].origemGrid = gridId; 
+
+                await salvarInventarioNoFirebase();
             }
             fecharMenus();
             atualizarTudo();
         }
 
-        function desequiparItem(slotName) {
+        async function desequiparItem(slotName) {
             if (modoAtual !== "adm") return;
             
             let item = equippedItems[slotName];
@@ -666,6 +717,7 @@
                 if (targetIndex !== -1) {
                     gridMochila[targetIndex] = item;
                     equippedItems[slotName] = {};
+                    await salvarInventarioNoFirebase();
                 } else {
                     let targetGrid = item.origemGrid || 'grid-equipments';
                     let targetArray = getGridArray(targetGrid);
@@ -673,6 +725,7 @@
                     if (targetIndex !== -1) {
                         targetArray[targetIndex] = item;
                         equippedItems[slotName] = {};
+                        await salvarInventarioNoFirebase();
                     }
                 }
             }
@@ -680,7 +733,7 @@
             atualizarTudo();
         }
 
-        function moverParaMochila(fromGrid, index) {
+        async function moverParaMochila(fromGrid, index) {
             if (modoAtual !== "adm") return;
             let fromArray = getGridArray(fromGrid);
             let item = fromArray[index];
@@ -691,13 +744,14 @@
                     item.origemGrid = fromGrid; 
                     gridMochila[targetIndex] = item;
                     fromArray[index] = {};
+                    await salvarInventarioNoFirebase();
                     atualizarTudo();
                 }
             }
             fecharMenus();
         }
 
-        function moverItemParaOrigem(index) {
+        async function moverItemParaOrigem(index) {
             if (modoAtual !== "adm") return;
             let item = gridMochila[index];
             
@@ -709,13 +763,13 @@
                 if (targetIndex !== -1) {
                     targetArray[targetIndex] = item;
                     gridMochila[index] = {};
+                    await salvarInventarioNoFirebase();
                     atualizarTudo();
                 }
             }
             fecharMenus();
         }
 
-        // Exclui item da interface e do Firebase
         async function excluirItem(gridId, index) {
             if (modoAtual !== "adm" && gridId !== 'grid-adventurer') return;
             
@@ -723,8 +777,8 @@
             let item = grid[index];
             
             if (item && item.id) {
-                await excluirDoFirebase(item.id);
                 grid[index] = {};
+                await salvarInventarioNoFirebase();
             }
             
             fecharMenus();
@@ -808,8 +862,8 @@
             });
         }
 
-        // Preenchimento inicial do dropdown com o lista.js
         document.addEventListener("DOMContentLoaded", async () => {
+            // Carrega os dados do Firebase
             await carregarDoFirebase();
             atualizarTudo();
 
