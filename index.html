@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventário - RPG</title>
+    <title>Painel do Mestre - Gerenciador</title>
     <style>
         * {
             box-sizing: border-box;
@@ -14,26 +14,235 @@
         body, html {
             width: 100%;
             height: 100%;
+            background-color: #121212;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
-            background-color: #000;
         }
 
-        /* Moldura original da Calculadora (Full Screen) */
-        .inventory-frame {
-            width: 100vw;
+        .panel-container {
+            display: flex;
             height: 100vh;
-            background-image: url('https://i.imgur.com/Zkj2oFh.png');
-            background-size: 100% 100%; /* Preenche a tela toda */
-            background-position: center;
-            position: relative;
         }
 
-        /* Container do Vídeo do Personagem (Lado Esquerdo) */
-        .character-container {
-            position: absolute;
-            top: 50%;
-            left: 25%; /* Posicionado no lado esquerdo da tela */
-            transform: translate(-50%, -50%);
+        .sidebar {
+            width: 280px;
+            background-color: #1a1a1a;
+            border-right: 2px solid #333;
+            padding: 30px 20px;
+        }
+
+        .sidebar h2 {
+            color: #e67e22;
+            margin-bottom: 40px;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .menu-item {
+            padding: 14px 16px;
+            color: #aaaaaa;
+            text-decoration: none;
+            display: block;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            transition: background 0.3s, color 0.3s;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            background-color: #2a2a2a;
+            color: #ffffff;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: #1a1a1a;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .card h3 {
+            color: #e67e22;
+            margin-bottom: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+        }
+
+        .item-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #1e1e1e;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #e67e22;
+        }
+
+        .item-card-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .item-card-info img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        .btn-action, .btn-remove {
+            background-color: #721c24;
+            color: #ffcccc;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn-action {
+            background-color: #e67e22;
+            color: #ffffff;
+            margin-top: 15px;
+            width: 100%;
+            padding: 10px;
+        }
+
+        .btn-action:hover {
+            background-color: #d35400;
+        }
+
+        .btn-remove:hover {
+            background-color: #a71d2a;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel-container">
+        <aside class="sidebar">
+            <h2>Mestre Panel</h2>
+            <a class="menu-item" onclick="carregarCatalogo()">Carregar Catálogo</a>
+            <a class="menu-item" onclick="limparInventario()">Limpar Inventário</a>
+        </aside>
+
+        <main class="main-content">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>Inventário do Aventureiro</h3>
+                    <div id="inventario-display">
+                        <div class="empty-state">
+                            Nenhum item adicionado ao inventário.
+                        </div>
+                    </div>
+                    <button class="btn-action" onclick="adicionarPrimeiroItem()">Adicionar Item do Catálogo</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="lista.js" defer></script>
+
+    <script>
+        function inicializarPainel() {
+            console.log("Painel inicializado com sucesso!");
+            if (typeof bancoDeItens !== 'undefined') {
+                console.log("Catálogo de itens encontrado no script:", bancoDeItens);
+            } else {
+                console.warn("bancoDeItens ainda não foi carregado. Verifique se lista.js está na mesma pasta.");
+            }
+        }
+
+        // Função para testar/adicionar um item do bancoDeItens
+        function adicionarPrimeiroItem() {
+            if (typeof bancoDeItens === 'undefined' || bancoDeItens.length === 0) {
+                alert("Erro: O banco de itens está vazio ou não foi encontrado.");
+                return;
+            }
+
+            // Pega o primeiro item do banco como exemplo
+            const itemSelecionado = bancoDeItens[0];
+            const display = document.getElementById('inventario-display');
+
+            if (display.querySelector('.empty-state')) {
+                display.innerHTML = '';
+            }
+
+            const itemJaExiste = display.querySelector(`[data-id='${itemSelecionado.id}']`);
+            if (itemJaExiste) {
+                alert("Este item já está no inventário!");
+                return;
+            }
+
+            const itemCard = document.createElement('div');
+            itemCard.className = 'item-card';
+            itemCard.setAttribute('data-id', itemSelecionado.id);
+            
+            itemCard.innerHTML = `
+                <div class="item-card-info">
+                    <img src="${itemSelecionado.imagem}" alt="${itemSelecionado.nome}">
+                    <span>${itemSelecionado.nome}</span>
+                </div>
+                <button class="btn-remove" onclick="removerDoInventario(this)">Remover</button>
+            `;
+            
+            display.appendChild(itemCard);
+        }
+
+        function removerDoInventario(botao) {
+            const card = botao.parentElement.parentElement;
+            const display = card.parentElement;
+            display.removeChild(card);
+
+            if (display.children.length === 0) {
+                display.innerHTML = `
+                    <div class="empty-state">
+                        Nenhum item adicionado ao inventário.
+                    </div>
+                `;
+            }
+        }
+
+        function carregarCatalogo() {
+            if (typeof bancoDeItens !== 'undefined') {
+                let nomes = bancoDeItens.map(i => i.nome).join(', ');
+                alert("Itens carregados no sistema:\n" + nomes);
+            } else {
+                alert("lista.js não foi encontrado. Verifique se o nome e diretório estão corretos.");
+            }
+        }
+
+        function limparInventario() {
+            document.getElementById('inventario-display').innerHTML = `
+                <div class="empty-state">
+                    Nenhum item adicionado ao inventário.
+                </div>
+            `;
+        }
+
+        document.addEventListener('DOMContentLoaded', inicializarPainel);
+    </script>
+</body>
+</html>
             width: 450px; 
             height: 550px; 
             z-index: 1;
