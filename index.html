@@ -369,6 +369,8 @@
 </head>
 <body>
 
+    <script src="lista.js"></script>
+
     <div class="inventory-frame">
         
         <div id="inventory-overlay" class="inventory-overlay" onclick="fecharMenus()"></div>
@@ -407,11 +409,8 @@
         </div>
 
         <div id="grid-adventurer" class="inventory-grid" style="display: none;"></div>
-
         <div id="grid-equipments" class="inventory-grid" style="display: grid;"></div>
-
         <div id="grid-items" class="inventory-grid" style="display: none;"></div>
-
         <div id="grid-materials" class="inventory-grid" style="display: none;"></div>
 
     </div>
@@ -434,21 +433,15 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
+        // Exporta para uso global no script
         window.db = db;
+        window.doc = doc;
+        window.setDoc = setDoc;
+
         console.log("Firebase e Firestore inicializados com sucesso!");
     </script>
 
     <script>
-        // Lista de itens em background (pode ser expandida/alterada como quiser)
-        const masterListaDeItens = [
-            { id: "espada_longa", nome: "Espada Longa", tipo: "grid-equipments", img: "https://i.imgur.com/Gi1TwZ7.png", valor: "1d8" },
-            { id: "escudo_ferro", nome: "Escudo de Ferro", tipo: "grid-equipments", img: "https://i.imgur.com/sK5SnCa.png", valor: "+2 CA" },
-            { id: "pocao_cura", nome: "Poção de Cura", tipo: "grid-items", img: "https://i.imgur.com/ucaeaSj.png", valor: "2d4+2" },
-            { id: "pocao_mana", nome: "Poção de Mana", tipo: "grid-items", img: "https://i.imgur.com/b0XLgVU.png", valor: "50g" },
-            { id: "minerio_ferro", nome: "Minério de Ferro", tipo: "grid-materials", img: "https://i.imgur.com/Gi1TwZ7.png", valor: "5" },
-            { id: "pedra_runica", nome: "Pedra Rúnica", tipo: "grid-materials", img: "https://i.imgur.com/Zkj2oFh.png", valor: "100g" }
-        ];
-
         function getEmptyGrid() {
             let grid = [];
             for (let i = 0; i < 16; i++) {
@@ -457,7 +450,7 @@
             return grid;
         }
 
-        // Inicia o inventário limpo (vazio)
+        // Inicia com os grids vazios
         let gridEquipamentos = getEmptyGrid();
         let gridMochila = getEmptyGrid();
         let gridItens = getEmptyGrid();
@@ -475,13 +468,14 @@
         // Preenche o menu suspenso ao carregar a página
         document.addEventListener("DOMContentLoaded", () => {
             const select = document.getElementById('item-selecionado');
-            masterListaDeItens.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.id;
-                option.textContent = item.nome;
-                select.appendChild(option);
-            });
-
+            if (select && typeof bancoDeItens !== 'undefined') {
+                bancoDeItens.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    option.textContent = item.nome;
+                    select.appendChild(option);
+                });
+            }
             atualizarTudo();
         });
 
@@ -489,18 +483,26 @@
             const select = document.getElementById('item-selecionado');
             const itemSelecionadoId = select.value;
 
-            // Encontra o item na nossa lista principal
-            const itemOriginal = masterListaDeItens.find(item => item.id === itemSelecionadoId);
-
-            if (!itemOriginal) {
-                alert("Nenhum item selecionado.");
+            if (typeof bancoDeItens === 'undefined') {
+                alert("A variável bancoDeItens não está definida.");
                 return;
             }
 
-            // Cria um identificador único para registrar no banco de dados com timestamp
+            // Encontra o item em `bancoDeItens` (lista.js)
+            const itemOriginal = bancoDeItens.find(item => item.id === itemSelecionadoId);
+
+            if (!itemOriginal) {
+                alert("Nenhum item selecionado ou a lista está vazia.");
+                return;
+            }
+
+            // Cria um identificador único para o banco de dados
             const itemParaAdicionar = {
-                ...itemOriginal,
                 id: itemOriginal.id + "_" + Date.now(),
+                nome: itemOriginal.nome,
+                tipo: itemOriginal.tipo,
+                img: itemOriginal.imagem || itemOriginal.img,
+                valor: itemOriginal.valor,
                 timestamp: new Date().toISOString()
             };
 
@@ -513,9 +515,7 @@
 
                 // Envia para o banco de dados
                 try {
-                    const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
-                    await setDoc(doc(window.db, "inventario", itemParaAdicionar.id), itemParaAdicionar);
-                    
+                    await window.setDoc(window.doc(window.db, "inventario", itemParaAdicionar.id), itemParaAdicionar);
                     alert("Item movido para a calculadora e registrado no banco de dados com sucesso!");
                 } catch (error) {
                     console.error("Erro ao salvar no Firestore: ", error);
@@ -527,13 +527,12 @@
         }
 
         function conferirLista() {
-            let itensCount = 0;
-            [gridEquipamentos, gridMochila, gridItens, gridMateriais].forEach(grid => {
-                grid.forEach(i => {
-                    if (i.id) itensCount++;
-                });
-            });
-            alert(`Conferência de Inventário:\nTotal de itens no grid: ${itensCount}`);
+            if (typeof bancoDeItens !== 'undefined' && bancoDeItens.length > 0) {
+                let nomes = bancoDeItens.map(i => `- ${i.nome}`).join('\n');
+                alert('Lista conectada com sucesso!\nItens encontrados:\n' + nomes);
+            } else {
+                alert('A lista (bancoDeItens) não está definida ou está vazia.');
+            }
         }
 
         function alternarModo() {
