@@ -476,7 +476,7 @@
         async function adicionarItemDaLista() {
             const select = document.getElementById('select-item');
             const indexSelecionado = select.value;
-            const itemOriginal = window.bancoDeItens[constSelecionado];
+            const itemOriginal = window.bancoDeItens[indexSelecionado];
 
             if (!itemOriginal) {
                 alert("Nenhum item selecionado ou lista vazia.");
@@ -656,7 +656,7 @@
             
             if (gridId === 'grid-adventurer') {
                 if (modoAtual !== "aventureiro") {
-                    menuHtml += `<button class="btn-mover-original" data-index="${index}">Mover para original</button>`;
+                    menuHtml += `<button class="btn-mover-original" data-index="${index}">Mover para Categoria</button>`;
                 }
             } else {
                 menuHtml += `<button class="btn-mover" data-grid="${gridId}" data-index="${index}">Mover para Mochila</button>`;
@@ -710,18 +710,30 @@
             
             let item = equippedItems[slotName];
             if (item && item.id) {
-                let targetIndex = gridMochila.findIndex(slot => !slot.id);
+                // Destino direto do item desequipado baseado no tipo
+                let targetGrid = 'grid-equipments';
+                if (item.tipo) {
+                    const tipo = item.tipo.toLowerCase();
+                    if (tipo.includes('equipamento') || tipo.includes('arma') || tipo.includes('armadura')) {
+                        targetGrid = 'grid-equipments';
+                    } else if (tipo.includes('item') || tipo.includes('consumivel') || tipo.includes('poção')) {
+                        targetGrid = 'grid-items';
+                    } else if (tipo.includes('material') || tipo.includes('recurso')) {
+                        targetGrid = 'grid-materials';
+                    }
+                }
+                
+                let targetArray = getGridArray(targetGrid);
+                let targetIndex = targetArray.findIndex(slot => !slot.id);
                 
                 if (targetIndex !== -1) {
-                    gridMochila[targetIndex] = item;
+                    targetArray[targetIndex] = item;
                     equippedItems[slotName] = {};
                     await salvarInventarioNoFirebase();
                 } else {
-                    let targetGrid = item.origemGrid || 'grid-equipments';
-                    let targetArray = getGridArray(targetGrid);
-                    let targetIndex = targetArray.findIndex(slot => !slot.id);
-                    if (targetIndex !== -1) {
-                        targetArray[targetIndex] = item;
+                    let fallbackIndex = gridMochila.findIndex(slot => !slot.id);
+                    if (fallbackIndex !== -1) {
+                        gridMochila[fallbackIndex] = item;
                         equippedItems[slotName] = {};
                         await salvarInventarioNoFirebase();
                     }
@@ -754,7 +766,23 @@
             let item = gridMochila[index];
             
             if (item && item.id) {
-                let targetGrid = item.origemGrid || 'grid-equipments';
+                let targetGrid = 'grid-equipments'; // Padrão
+                
+                // Determina o grid de destino pelo campo "tipo" do item
+                if (item.tipo) {
+                    const tipo = item.tipo.toLowerCase();
+                    if (tipo.includes('equipamento') || tipo.includes('arma') || tipo.includes('armadura')) {
+                        targetGrid = 'grid-equipments';
+                    } else if (tipo.includes('item') || tipo.includes('consumivel') || tipo.includes('poção')) {
+                        targetGrid = 'grid-items';
+                    } else if (tipo.includes('material') || tipo.includes('recurso')) {
+                        targetGrid = 'grid-materials';
+                    }
+                } else {
+                    // Fallback para a propriedade 'origemGrid' original se não tiver a propriedade de tipo
+                    targetGrid = item.origemGrid || 'grid-equipments';
+                }
+                
                 let targetArray = getGridArray(targetGrid);
                 let targetIndex = targetArray.findIndex(slot => !slot.id);
                 
@@ -763,6 +791,8 @@
                     gridMochila[index] = {};
                     await salvarInventarioNoFirebase();
                     atualizarTudo();
+                } else {
+                    alert("A área de destino selecionada está cheia!");
                 }
             }
             fecharMenus();
@@ -860,7 +890,7 @@
             });
         }
 
-        // Adicionando a Mecânica de Arrastar e Soltar (Drag and Drop)
+        // Mecânica de Arrastar e Soltar (Drag and Drop)
         document.addEventListener('dragstart', (e) => {
             const slot = e.target.closest('.grid-slot');
             if (slot && slot.querySelector('img')) {
@@ -907,7 +937,6 @@
                 let sourceItem = sourceArray[sourceIndex];
                 let targetItem = targetArray[targetIndex];
 
-                // Efetua a troca de posição
                 sourceArray[sourceIndex] = targetItem;
                 targetArray[targetIndex] = sourceItem;
 
