@@ -589,7 +589,8 @@
                 badge.textContent = "Modo ADM Ativo";
                 botoesTopo.style.display = "flex";
                 
-                showGrid('grid-equipments');
+                // Permanece na mochila ao alternar para ADM
+                showGrid('grid-adventurer');
             }
             atualizarTudo();
         }
@@ -708,10 +709,12 @@
         }
 
         async function desequiparItem(slotName) {
-            if (modoAtual !== "adm") return;
+            // Permite desequipar tanto no modo ADM quanto no modo Aventureiro
+            if (modoAtual !== "adm" && modoAtual !== "aventureiro") return;
             
             let item = equippedItems[slotName];
             if (item && item.id) {
+                // Vai direto para a mochila
                 let targetIndex = gridMochila.findIndex(slot => !slot.id);
                 
                 if (targetIndex !== -1) {
@@ -914,7 +917,6 @@
                     e.stopPropagation();
                     
                     if (slot.classList.contains('slot')) {
-                        if (modoAtual === "aventureiro") return;
                         if (!slot.querySelector('img')) return;
 
                         const menu = slot.querySelector('.item-menu');
