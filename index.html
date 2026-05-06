@@ -38,8 +38,8 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.4);
-            z-index: 1;
-            pointer-events: auto;
+            z-index: 1; /* Sobe por baixo do grid */
+            pointer-events: auto; /* Garante que o clique funcione no fundo */
         }
 
         /* Container do modo de jogo e controle de acesso */
@@ -88,55 +88,6 @@
             background-color: #444;
         }
 
-        /* Painel para selecionar e adicionar itens da lista */
-        .admin-panel {
-            position: absolute;
-            top: 18%;
-            left: 4%;
-            background-color: rgba(34, 34, 34, 0.95);
-            border: 1px solid #555;
-            padding: 12px;
-            border-radius: 8px;
-            z-index: 10;
-            width: 280px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .admin-panel h3 {
-            color: #e67e22;
-            font-size: 14px;
-            text-align: center;
-            margin-bottom: 2px;
-        }
-
-        .admin-panel select, .admin-panel option {
-            padding: 6px;
-            background: #222;
-            color: #fff;
-            border: 1px solid #444;
-            border-radius: 4px;
-            font-size: 12px;
-            width: 100%;
-        }
-
-        .btn-add-item {
-            background-color: #e67e22;
-            color: white;
-            border: none;
-            padding: 8px;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-add-item:hover {
-            background-color: #d35400;
-        }
-
         /* Container do botão inferior laranja */
         .bottom-container {
             position: absolute;
@@ -146,8 +97,8 @@
         }
 
         .orange-action-button {
-            background-color: #e67e22;
-            background-image: none;
+            background-color: #e67e22; /* Cor laranja de destaque */
+            background-image: none; /* Remove a textura padrão */
             color: #ffffff;
             width: 180px;
             height: 60px;
@@ -218,6 +169,7 @@
             object-fit: contain;
         }
 
+        /* Posicionamento dos slots */
         .slot-head { top: 15%; left: 15%; }
         .slot-left-hand { top: 45%; left: 10%; }
         .slot-shoulder { top: 30%; left: 28%; }
@@ -313,6 +265,7 @@
             object-fit: contain;
         }
 
+        /* Menu de opções do item */
         .item-menu {
             display: none;
             position: absolute;
@@ -323,7 +276,7 @@
             border: 1px solid #444;
             border-radius: 6px;
             padding: 6px;
-            z-index: 105;
+            z-index: 105; /* Fica acima do slot */
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
             width: 160px;
             flex-direction: column;
@@ -346,11 +299,12 @@
             background: #444;
         }
 
+        /* ESTADOS DE DESATIVAÇÃO E DESTAQUE */
         .overlay-active .slot,
         .overlay-active .action-button,
         .overlay-active .mode-container,
         .overlay-active .grid-slot,
-        .overlay-active .admin-panel {
+        .overlay-active .slot {
             pointer-events: none;
             filter: brightness(0.6);
         }
@@ -359,6 +313,7 @@
             display: block;
         }
 
+        /* Garante que o slot ativo passe para a camada superior com o filtro por trás */
         .overlay-active .grid-slot.active-slot,
         .overlay-active .slot.active-slot {
             pointer-events: auto;
@@ -371,6 +326,67 @@
 
     <script src="lista.js"></script>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDJ8TOv0bkTE7my0VEVv1LtPIkukGPhKbM",
+            authDomain: "rpg-mesa-4c8ef.firebaseapp.com",
+            databaseURL: "https://rpg-mesa-4c8ef-default-rtdb.firebaseio.com",
+            projectId: "rpg-mesa-4c8ef",
+            storageBucket: "rpg-mesa-4c8ef.firebasestorage.app",
+            messagingSenderId: "270738612946",
+            appId: "1:270738612946:web:7ee64ed841288f3719c30b",
+            measurementId: "G-PJ8H64V8KB"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // Armazena as instâncias de Firebase no escopo global
+        window.db = db;
+        window.collection = collection;
+        window.addDoc = addDoc;
+        
+        console.log("Banco de dados conectado!");
+    </script>
+
+    <script>
+        async function salvarInventario() {
+            // Verifica se o Firebase foi inicializado
+            if (typeof window.db === 'undefined' || typeof window.addDoc === 'undefined') {
+                alert("O Firebase não foi inicializado corretamente. Verifique o console.");
+                return;
+            }
+
+            // Verifica se o array 'bancoDeItens' (definido em lista.js) existe e tem itens
+            if (typeof bancoDeItens === 'undefined' || bancoDeItens.length === 0) {
+                alert("A sua lista (bancoDeItens) está vazia ou não foi carregada. Não há o que salvar.");
+                return;
+            }
+
+            try {
+                // Salva cada item da lista
+                for (let i = 0; i < bancoDeItens.length; i++) {
+                    let item = bancoDeItens[i];
+                    await window.addDoc(window.collection(window.db, "inventario"), {
+                        id: item.id || Date.now() + i,
+                        nome: item.nome,
+                        tipo: item.tipo,
+                        valor: item.valor,
+                        imagem: item.imagem,
+                        salvoEm: new Date().toLocaleString('pt-BR')
+                    });
+                }
+                alert("Inventário salvo com sucesso no Firebase!");
+            } catch (e) {
+                console.error("Erro ao salvar os itens: ", e);
+                alert("Ocorreu um erro ao enviar os dados. Verifique o console ou as regras de acesso.");
+            }
+        }
+    </script>
+
     <div class="inventory-frame">
         
         <div id="inventory-overlay" class="inventory-overlay" onclick="fecharMenus()"></div>
@@ -380,15 +396,8 @@
             <button class="btn-mode" onclick="alternarModo()">Alternar Modo</button>
         </div>
 
-        <div class="admin-panel">
-            <h3>Adicionar Item</h3>
-            <select id="item-selecionado">
-                </select>
-            <button class="btn-add-item" onclick="adicionarItemDaLista()">Adicionar ao Inventário</button>
-        </div>
-
         <div class="bottom-container">
-            <button class="action-button orange-action-button" title="Conferir Lista" onclick="conferirLista()">Conferir Lista</button>
+            <button class="action-button orange-action-button" title="Salvar Inventário" onclick="salvarInventario()">Salvar Inventário</button>
         </div>
 
         <div class="character-container">
@@ -409,37 +418,14 @@
         </div>
 
         <div id="grid-adventurer" class="inventory-grid" style="display: none;"></div>
+
         <div id="grid-equipments" class="inventory-grid" style="display: grid;"></div>
+
         <div id="grid-items" class="inventory-grid" style="display: none;"></div>
+
         <div id="grid-materials" class="inventory-grid" style="display: none;"></div>
 
     </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDJ8TOv0bkTE7my0VEVv1LtPIkukGPhKbM",
-            authDomain: "rpg-mesa-4c8ef.firebaseapp.com",
-            databaseURL: "https://rpg-mesa-4c8ef-default-rtdb.firebaseio.com",
-            projectId: "rpg-mesa-4c8ef",
-            storageBucket: "rpg-mesa-4c8ef.firebasestorage.app",
-            messagingSenderId: "270738612946",
-            appId: "1:270738612946:web:7ee64ed841288f3719c30b",
-            measurementId: "G-PJ8H64V8KB"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        
-        // Exporta para uso global no script
-        window.db = db;
-        window.doc = doc;
-        window.setDoc = setDoc;
-
-        console.log("Firebase e Firestore inicializados com sucesso!");
-    </script>
 
     <script>
         function getEmptyGrid() {
@@ -450,8 +436,23 @@
             return grid;
         }
 
-        // Inicia com os grids vazios
+        // Dados dinâmicos carregados a partir do lista.js
         let gridEquipamentos = getEmptyGrid();
+
+        if (typeof bancoDeItens !== 'undefined' && bancoDeItens.length > 0) {
+            bancoDeItens.forEach((item, index) => {
+                if (index < 16) {
+                    gridEquipamentos[index] = {
+                        id: item.id,
+                        nome: item.nome,
+                        img: item.imagem, // Mapeia "imagem" de lista.js para "img"
+                        tipo: item.tipo,
+                        valor: item.valor
+                    };
+                }
+            });
+        }
+
         let gridMochila = getEmptyGrid();
         let gridItens = getEmptyGrid();
         let gridMateriais = getEmptyGrid();
@@ -465,67 +466,7 @@
 
         let modoAtual = "adm";
 
-        // Preenche o menu suspenso ao carregar a página
-        document.addEventListener("DOMContentLoaded", () => {
-            const select = document.getElementById('item-selecionado');
-            if (select && typeof bancoDeItens !== 'undefined') {
-                bancoDeItens.forEach(item => {
-                    const option = document.createElement('option');
-                    option.value = item.id;
-                    option.textContent = item.nome;
-                    select.appendChild(option);
-                });
-            }
-            atualizarTudo();
-        });
-
-        async function adicionarItemDaLista() {
-            const select = document.getElementById('item-selecionado');
-            const itemSelecionadoId = select.value;
-
-            if (typeof bancoDeItens === 'undefined') {
-                alert("A variável bancoDeItens não está definida.");
-                return;
-            }
-
-            // Encontra o item em `bancoDeItens` (lista.js)
-            const itemOriginal = bancoDeItens.find(item => item.id === itemSelecionadoId);
-
-            if (!itemOriginal) {
-                alert("Nenhum item selecionado ou a lista está vazia.");
-                return;
-            }
-
-            // Cria um identificador único para o banco de dados
-            const itemParaAdicionar = {
-                id: itemOriginal.id + "_" + Date.now(),
-                nome: itemOriginal.nome,
-                tipo: itemOriginal.tipo,
-                img: itemOriginal.imagem || itemOriginal.img,
-                valor: itemOriginal.valor,
-                timestamp: new Date().toISOString()
-            };
-
-            const gridArray = getGridArray(itemParaAdicionar.tipo);
-            const targetIndex = gridArray.findIndex(slot => !slot.id);
-
-            if (targetIndex !== -1) {
-                gridArray[targetIndex] = itemParaAdicionar;
-                atualizarTudo();
-
-                // Envia para o banco de dados
-                try {
-                    await window.setDoc(window.doc(window.db, "inventario", itemParaAdicionar.id), itemParaAdicionar);
-                    alert("Item movido para a calculadora e registrado no banco de dados com sucesso!");
-                } catch (error) {
-                    console.error("Erro ao salvar no Firestore: ", error);
-                    alert("Item adicionado ao grid local, mas ocorreu um erro ao salvar no banco de dados.");
-                }
-            } else {
-                alert("A aba do inventário está cheia!");
-            }
-        }
-
+        // Função de conferência adicionada
         function conferirLista() {
             if (typeof bancoDeItens !== 'undefined' && bancoDeItens.length > 0) {
                 let nomes = bancoDeItens.map(i => `- ${i.nome}`).join('\n');
@@ -559,6 +500,7 @@
         }
 
         function showGrid(gridId) {
+            // Em modo aventureiro, permite ver apenas a mochila
             if (modoAtual === "aventureiro" && gridId !== 'grid-adventurer') return;
 
             const grids = document.querySelectorAll('.inventory-grid');
@@ -816,83 +758,87 @@
             });
         }
 
-        document.addEventListener("click", (e) => {
-            if (e.target.closest('.item-menu')) {
-                const btn = e.target;
-                
-                if (btn.classList.contains('btn-equipar')) {
-                    e.stopPropagation();
-                    fecharMenus();
-                    equiparItem(btn.dataset.grid, parseInt(btn.dataset.index));
-                } else if (btn.classList.contains('btn-excluir')) {
-                    e.stopPropagation();
-                    fecharMenus();
-                    excluirItem(btn.dataset.grid, parseInt(btn.dataset.index));
-                } else if (btn.classList.contains('btn-mover')) {
-                    e.stopPropagation();
-                    fecharMenus();
-                    moverParaMochila(btn.dataset.grid, parseInt(btn.dataset.index));
-                } else if (btn.classList.contains('btn-mover-original')) {
-                    e.stopPropagation();
-                    fecharMenus();
-                    moverItemParaOrigem(parseInt(btn.dataset.index));
-                } else if (btn.classList.contains('btn-desequipar')) {
-                    e.stopPropagation();
-                    fecharMenus();
-                    desequiparItem(btn.dataset.slot);
-                }
-                return;
-            }
+        document.addEventListener("DOMContentLoaded", () => {
+            atualizarTudo();
 
-            const slot = e.target.closest('.grid-slot') || e.target.closest('.slot');
-            if (slot) {
-                e.stopPropagation();
-                
-                if (slot.classList.contains('slot')) {
-                    if (modoAtual === "aventureiro") return;
-                    if (!slot.querySelector('img')) return;
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.item-menu')) {
+                    const btn = e.target;
+                    
+                    if (btn.classList.contains('btn-equipar')) {
+                        e.stopPropagation();
+                        fecharMenus();
+                        equiparItem(btn.dataset.grid, parseInt(btn.dataset.index));
+                    } else if (btn.classList.contains('btn-excluir')) {
+                        e.stopPropagation();
+                        fecharMenus();
+                        excluirItem(btn.dataset.grid, parseInt(btn.dataset.index));
+                    } else if (btn.classList.contains('btn-mover')) {
+                        e.stopPropagation();
+                        fecharMenus();
+                        moverParaMochila(btn.dataset.grid, parseInt(btn.dataset.index));
+                    } else if (btn.classList.contains('btn-mover-original')) {
+                        e.stopPropagation();
+                        fecharMenus();
+                        moverItemParaOrigem(parseInt(btn.dataset.index));
+                    } else if (btn.classList.contains('btn-desequipar')) {
+                        e.stopPropagation();
+                        fecharMenus();
+                        desequiparItem(btn.dataset.slot);
+                    }
+                    return;
+                }
+
+                const slot = e.target.closest('.grid-slot') || e.target.closest('.slot');
+                if (slot) {
+                    e.stopPropagation();
+                    
+                    if (slot.classList.contains('slot')) {
+                        if (modoAtual === "aventureiro") return;
+                        if (!slot.querySelector('img')) return;
+
+                        const menu = slot.querySelector('.item-menu');
+                        if (menu && menu.style.display === 'flex') {
+                            fecharMenus();
+                        } else {
+                            fecharMenus();
+                            const frame = document.querySelector('.inventory-frame');
+                            if (frame) {
+                                frame.classList.add('overlay-active');
+                            }
+                            slot.classList.add('active-slot');
+                            slot.style.zIndex = '100';
+                            if (menu) {
+                                menu.style.display = 'flex';
+                            }
+                        }
+                        return;
+                    }
+
+                    if (modoAtual === "aventureiro" && !slot.closest('#grid-adventurer')) return;
 
                     const menu = slot.querySelector('.item-menu');
                     if (menu && menu.style.display === 'flex') {
                         fecharMenus();
                     } else {
                         fecharMenus();
+
                         const frame = document.querySelector('.inventory-frame');
                         if (frame) {
                             frame.classList.add('overlay-active');
                         }
+
                         slot.classList.add('active-slot');
                         slot.style.zIndex = '100';
+
                         if (menu) {
                             menu.style.display = 'flex';
                         }
                     }
-                    return;
-                }
-
-                if (modoAtual === "aventureiro" && !slot.closest('#grid-adventurer')) return;
-
-                const menu = slot.querySelector('.item-menu');
-                if (menu && menu.style.display === 'flex') {
-                    fecharMenus();
                 } else {
                     fecharMenus();
-
-                    const frame = document.querySelector('.inventory-frame');
-                    if (frame) {
-                        frame.classList.add('overlay-active');
-                    }
-
-                    slot.classList.add('active-slot');
-                    slot.style.zIndex = '100';
-
-                    if (menu) {
-                        menu.style.display = 'flex';
-                    }
                 }
-            } else {
-                fecharMenus();
-            }
+            });
         });
     </script>
 </body>
