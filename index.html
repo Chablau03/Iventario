@@ -38,8 +38,8 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.4);
-            z-index: 1; /* Sobe por baixo do grid */
-            pointer-events: auto; /* Garante que o clique funcione no fundo */
+            z-index: 1;
+            pointer-events: auto;
         }
 
         /* Container do modo de jogo e controle de acesso */
@@ -88,38 +88,56 @@
             background-color: #444;
         }
 
-        /* Container do botão inferior laranja */
-        .bottom-container {
+        /* Menu de adição manual */
+        .add-item-container {
             position: absolute;
             bottom: 4%;
             left: 4%;
             z-index: 10;
-        }
-
-        .orange-action-button {
-            background-color: #e67e22; /* Cor laranja de destaque */
-            background-image: none; /* Remove a textura padrão */
-            color: #ffffff;
-            width: 180px;
-            height: 60px;
-            border: 2px solid #d35400;
+            background: rgba(34, 34, 34, 0.95);
+            border: 1px solid #e67e22;
+            padding: 12px;
             border-radius: 6px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
             display: flex;
-            align-items: center;
-            justify-content: center;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-            transition: background-color 0.2s, transform 0.2s;
-            outline: none;
-            -webkit-tap-highlight-color: transparent;
+            flex-direction: column;
+            gap: 8px;
+            width: 220px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
         }
 
-        .orange-action-button:hover {
+        .add-item-container h3 {
+            color: #e67e22;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 2px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .add-item-container input {
+            background: #111;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            outline: none;
+        }
+
+        .add-item-container button {
+            background-color: #e67e22;
+            color: #ffffff;
+            border: none;
+            padding: 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .add-item-container button:hover {
             background-color: #d35400;
-            transform: scale(1.05);
         }
 
         /* Container do Vídeo do Personagem (Lado Esquerdo) */
@@ -169,7 +187,6 @@
             object-fit: contain;
         }
 
-        /* Posicionamento dos slots */
         .slot-head { top: 15%; left: 15%; }
         .slot-left-hand { top: 45%; left: 10%; }
         .slot-shoulder { top: 30%; left: 28%; }
@@ -193,7 +210,6 @@
             transition: transform 0.2s;
             outline: none;
             -webkit-tap-highlight-color: transparent;
-            
             display: flex;
             align-items: center;
             justify-content: center;
@@ -276,7 +292,7 @@
             border: 1px solid #444;
             border-radius: 6px;
             padding: 6px;
-            z-index: 105; /* Fica acima do slot */
+            z-index: 105;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
             width: 160px;
             flex-direction: column;
@@ -313,7 +329,6 @@
             display: block;
         }
 
-        /* Garante que o slot ativo passe para a camada superior com o filtro por trás */
         .overlay-active .grid-slot.active-slot,
         .overlay-active .slot.active-slot {
             pointer-events: auto;
@@ -324,11 +339,9 @@
 </head>
 <body>
 
-    <script src="lista.js"></script>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDJ8TOv0bkTE7my0VEVv1LtPIkukGPhKbM",
@@ -344,45 +357,107 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
-        // Armazena as instâncias de Firebase no escopo global
         window.db = db;
         window.collection = collection;
         window.addDoc = addDoc;
-        
+        window.setDoc = setDoc;
+        window.doc = doc;
+        window.deleteDoc = deleteDoc;
+        window.getDocs = getDocs;
+
         console.log("Banco de dados conectado!");
     </script>
 
     <script>
-        async function salvarInventario() {
-            // Verifica se o Firebase foi inicializado
-            if (typeof window.db === 'undefined' || typeof window.addDoc === 'undefined') {
-                alert("O Firebase não foi inicializado corretamente. Verifique o console.");
-                return;
-            }
-
-            // Verifica se o array 'bancoDeItens' (definido em lista.js) existe e tem itens
-            if (typeof bancoDeItens === 'undefined' || bancoDeItens.length === 0) {
-                alert("A sua lista (bancoDeItens) está vazia ou não foi carregada. Não há o que salvar.");
-                return;
-            }
-
+        // Salva/atualiza o item diretamente no Firestore
+        async function salvarNoFirebase(item) {
+            if (typeof window.db === 'undefined') return;
             try {
-                // Salva cada item da lista
-                for (let i = 0; i < bancoDeItens.length; i++) {
-                    let item = bancoDeItens[i];
-                    await window.addDoc(window.collection(window.db, "inventario"), {
-                        id: item.id || Date.now() + i,
-                        nome: item.nome,
-                        tipo: item.tipo,
-                        valor: item.valor,
-                        imagem: item.imagem,
-                        salvoEm: new Date().toLocaleString('pt-BR')
-                    });
-                }
-                alert("Inventário salvo com sucesso no Firebase!");
+                const itemRef = window.doc(window.db, "inventario", String(item.id));
+                await window.setDoc(itemRef, {
+                    id: item.id,
+                    nome: item.nome,
+                    tipo: item.tipo,
+                    valor: item.valor,
+                    imagem: item.img || item.imagem,
+                    salvoEm: new Date().toLocaleString('pt-BR')
+                });
             } catch (e) {
-                console.error("Erro ao salvar os itens: ", e);
-                alert("Ocorreu um erro ao enviar os dados. Verifique o console ou as regras de acesso.");
+                console.error("Erro ao salvar item automaticamente:", e);
+            }
+        }
+
+        // Exclui o item do Firestore
+        async function excluirDoFirebase(itemId) {
+            if (typeof window.db === 'undefined') return;
+            try {
+                const itemRef = window.doc(window.db, "inventario", String(itemId));
+                await window.deleteDoc(itemRef);
+            } catch (e) {
+                console.error("Erro ao excluir item do Firebase:", e);
+            }
+        }
+
+        // Carrega itens do banco e atualiza na memória
+        async function carregarDoFirebase() {
+            if (typeof window.db === 'undefined') return;
+            try {
+                const querySnapshot = await window.getDocs(window.collection(window.db, "inventario"));
+                gridEquipamentos = getEmptyGrid();
+                let index = 0;
+                querySnapshot.forEach((doc) => {
+                    const item = doc.data();
+                    if (index < 16) {
+                        gridEquipamentos[index] = {
+                            id: item.id,
+                            nome: item.nome,
+                            img: item.imagem,
+                            tipo: item.tipo,
+                            valor: item.valor
+                        };
+                        index++;
+                    }
+                });
+            } catch (e) {
+                console.error("Erro ao inicializar inventário: ", e);
+            }
+        }
+
+        // Adiciona um item manualmente e salva no Firebase
+        async function adicionarItemManual() {
+            const nome = document.getElementById('add-nome').value;
+            const tipo = document.getElementById('add-tipo').value;
+            const valor = document.getElementById('add-valor').value;
+            const img = document.getElementById('add-imagem').value;
+
+            if (!nome || !img) {
+                alert("Preencha ao menos o Nome e o Link da Imagem.");
+                return;
+            }
+
+            const novoItem = {
+                id: Date.now(), // ID único baseado no tempo
+                nome: nome,
+                tipo: tipo,
+                valor: valor,
+                img: img
+            };
+
+            // Encontra um slot vazio
+            const index = gridEquipamentos.findIndex(slot => !slot.id);
+            if (index !== -1) {
+                gridEquipamentos[index] = novoItem;
+                await salvarNoFirebase(novoItem); // Salva automático
+
+                // Limpa o formulário após a adição
+                document.getElementById('add-nome').value = '';
+                document.getElementById('add-tipo').value = '';
+                document.getElementById('add-valor').value = '';
+                document.getElementById('add-imagem').value = '';
+
+                atualizarTudo();
+            } else {
+                alert("Inventário cheio! Exclua um item antes de adicionar outro.");
             }
         }
     </script>
@@ -396,8 +471,13 @@
             <button class="btn-mode" onclick="alternarModo()">Alternar Modo</button>
         </div>
 
-        <div class="bottom-container">
-            <button class="action-button orange-action-button" title="Salvar Inventário" onclick="salvarInventario()">Salvar Inventário</button>
+        <div class="add-item-container">
+            <h3>Adicionar Item Manual</h3>
+            <input type="text" id="add-nome" placeholder="Nome" />
+            <input type="text" id="add-tipo" placeholder="Tipo" />
+            <input type="text" id="add-valor" placeholder="Valor" />
+            <input type="text" id="add-imagem" placeholder="Link da Imagem" />
+            <button onclick="adicionarItemManual()">Adicionar</button>
         </div>
 
         <div class="character-container">
@@ -418,11 +498,8 @@
         </div>
 
         <div id="grid-adventurer" class="inventory-grid" style="display: none;"></div>
-
         <div id="grid-equipments" class="inventory-grid" style="display: grid;"></div>
-
         <div id="grid-items" class="inventory-grid" style="display: none;"></div>
-
         <div id="grid-materials" class="inventory-grid" style="display: none;"></div>
 
     </div>
@@ -436,23 +513,7 @@
             return grid;
         }
 
-        // Dados dinâmicos carregados a partir do lista.js
         let gridEquipamentos = getEmptyGrid();
-
-        if (typeof bancoDeItens !== 'undefined' && bancoDeItens.length > 0) {
-            bancoDeItens.forEach((item, index) => {
-                if (index < 16) {
-                    gridEquipamentos[index] = {
-                        id: item.id,
-                        nome: item.nome,
-                        img: item.imagem, // Mapeia "imagem" de lista.js para "img"
-                        tipo: item.tipo,
-                        valor: item.valor
-                    };
-                }
-            });
-        }
-
         let gridMochila = getEmptyGrid();
         let gridItens = getEmptyGrid();
         let gridMateriais = getEmptyGrid();
@@ -465,16 +526,6 @@
         };
 
         let modoAtual = "adm";
-
-        // Função de conferência adicionada
-        function conferirLista() {
-            if (typeof bancoDeItens !== 'undefined' && bancoDeItens.length > 0) {
-                let nomes = bancoDeItens.map(i => `- ${i.nome}`).join('\n');
-                alert('Lista conectada com sucesso!\nItens encontrados:\n' + nomes);
-            } else {
-                alert('A lista (bancoDeItens) não está definida ou está vazia.');
-            }
-        }
 
         function alternarModo() {
             const badge = document.getElementById('badge-modo');
@@ -500,7 +551,6 @@
         }
 
         function showGrid(gridId) {
-            // Em modo aventureiro, permite ver apenas a mochila
             if (modoAtual === "aventureiro" && gridId !== 'grid-adventurer') return;
 
             const grids = document.querySelectorAll('.inventory-grid');
@@ -544,7 +594,7 @@
                 if (item && item.id) {
                     slotDiv.title = item.nome;
                     slotDiv.innerHTML = `
-                        <img src="${item.img}" alt="${item.nome}">
+                        <img src="${item.img || item.imagem}" alt="${item.nome}">
                         ${criarMenuGrid(gridId, i, item)}
                     `;
                 } else {
@@ -671,11 +721,17 @@
             fecharMenus();
         }
 
-        function excluirItem(gridId, index) {
+        // Exclui item da interface e do Firebase
+        async function excluirItem(gridId, index) {
             if (modoAtual !== "adm" && gridId !== 'grid-adventurer') return;
             
             let grid = getGridArray(gridId);
-            grid[index] = {};
+            let item = grid[index];
+            
+            if (item && item.id) {
+                await excluirDoFirebase(item.id);
+                grid[index] = {};
+            }
             
             fecharMenus();
             atualizarTudo();
@@ -704,7 +760,7 @@
 
                     if (element) {
                         element.innerHTML = `
-                            <img src="${item.img}" alt="${item.nome}">
+                            <img src="${item.img || item.imagem}" alt="${item.nome}">
                             <div class="item-menu" id="menu-equip-${key}">
                                 <button class="btn-desequipar" data-slot="${key}">Desequipar</button>
                             </div>
@@ -758,7 +814,9 @@
             });
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", async () => {
+            // Carrega os dados do Firebase ao iniciar a página
+            await carregarDoFirebase();
             atualizarTudo();
 
             document.addEventListener('click', (e) => {
