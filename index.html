@@ -369,7 +369,6 @@
         window.doc = doc;
         window.deleteDoc = deleteDoc;
         window.getDocs = getDocs;
-
         console.log("Banco de dados conectado!");
     </script>
 
@@ -710,33 +709,15 @@
             
             let item = equippedItems[slotName];
             if (item && item.id) {
-                // Destino direto do item desequipado baseado no tipo
-                let targetGrid = 'grid-equipments';
-                if (item.tipo) {
-                    const tipo = item.tipo.toLowerCase();
-                    if (tipo.includes('equipamento') || tipo.includes('arma') || tipo.includes('armadura')) {
-                        targetGrid = 'grid-equipments';
-                    } else if (tipo.includes('item') || tipo.includes('consumivel') || tipo.includes('poção')) {
-                        targetGrid = 'grid-items';
-                    } else if (tipo.includes('material') || tipo.includes('recurso')) {
-                        targetGrid = 'grid-materials';
-                    }
-                }
-                
-                let targetArray = getGridArray(targetGrid);
-                let targetIndex = targetArray.findIndex(slot => !slot.id);
+                // Envia o item desequipado direto para a Mochila (grid-adventurer)
+                let targetIndex = gridMochila.findIndex(slot => !slot.id);
                 
                 if (targetIndex !== -1) {
-                    targetArray[targetIndex] = item;
+                    gridMochila[targetIndex] = item;
                     equippedItems[slotName] = {};
                     await salvarInventarioNoFirebase();
                 } else {
-                    let fallbackIndex = gridMochila.findIndex(slot => !slot.id);
-                    if (fallbackIndex !== -1) {
-                        gridMochila[fallbackIndex] = item;
-                        equippedItems[slotName] = {};
-                        await salvarInventarioNoFirebase();
-                    }
+                    alert("A Mochila está cheia!");
                 }
             }
             fecharMenus();
@@ -766,7 +747,7 @@
             let item = gridMochila[index];
             
             if (item && item.id) {
-                let targetGrid = 'grid-equipments'; // Padrão
+                let targetGrid = 'grid-equipments'; 
                 
                 // Determina o grid de destino pelo campo "tipo" do item
                 if (item.tipo) {
@@ -779,7 +760,6 @@
                         targetGrid = 'grid-materials';
                     }
                 } else {
-                    // Fallback para a propriedade 'origemGrid' original se não tiver a propriedade de tipo
                     targetGrid = item.origemGrid || 'grid-equipments';
                 }
                 
