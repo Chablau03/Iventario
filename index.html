@@ -17,6 +17,9 @@
             overflow: hidden;
             background-color: #000;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-touch-callout: none; /* Previne o menu de contexto e salvamento em mobile/touch */
+            -webkit-user-select: none;   /* Previne seleção de texto */
+            user-select: none;
         }
 
         /* Moldura original da Calculadora (Full Screen) */
@@ -187,6 +190,7 @@
             width: 60%;
             height: 60%;
             object-fit: contain;
+            pointer-events: none; /* Evita que o navegador arraste a imagem do slot */
         }
 
         .slot-head { top: 15%; left: 15%; }
@@ -281,7 +285,7 @@
             width: 55%;
             height: 55%;
             object-fit: contain;
-            pointer-events: auto;
+            pointer-events: none; /* Bloqueia ações nativas de arrastar a imagem pelo navegador */
         }
 
         /* Menu de opções do item */
@@ -634,7 +638,7 @@
                     slotDiv.title = item.nome;
                     slotDiv.setAttribute('draggable', 'true');
                     slotDiv.innerHTML = `
-                        <img src="${item.img || item.imagem}" alt="${item.nome}">
+                        <img src="${item.img || item.imagem}" alt="${item.nome}" draggable="false">
                         ${criarMenuGrid(gridId, i, item)}
                     `;
                 } else {
@@ -814,7 +818,7 @@
 
                     if (element) {
                         element.innerHTML = `
-                            <img src="${item.img || item.imagem}" alt="${item.nome}">
+                            <img src="${item.img || item.imagem}" alt="${item.nome}" draggable="false">
                             <div class="item-menu" id="menu-equip-${key}">
                                 <button class="btn-desequipar" data-slot="${key}">Desequipar</button>
                             </div>
@@ -867,6 +871,11 @@
                 s.style.zIndex = '';
             });
         }
+
+        // Bloqueio de menus de contexto do navegador
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault(); // Previne o menu de clique do botão direito
+        });
 
         // Mecânica de Arrastar e Soltar (Drag and Drop)
         document.addEventListener('dragstart', (e) => {
