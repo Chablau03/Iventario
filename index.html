@@ -239,7 +239,7 @@
             align-items: center;
             justify-content: center;
         }
-        .grid-slot img { width: 55%; height: 55%; object-fit: contain; pointer-events: none; }
+        .grid-slot img { width: 55%; height: 55%; object-fit: contain; pointer-events: auto; }
 
         .item-menu {
             display: none;
@@ -348,6 +348,9 @@
     </div>
 
     <script>
+        // --- Drag and Drop State ---
+        let itemSendoArrastado = null;
+
         // --- Pop-up ---
         function abrirPopup(item) {
             if (!item || !item.id) return;
@@ -403,7 +406,7 @@
                 const querySnapshot = await window.getDocs(window.collection(window.db, "inventario"));
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    const item = { id: data.id, nome: data.nome, img: data.imagem || data.img };
+                    const item = { id: data.id, nome: data.nome, img: data.imagem || data.img, tipo: data.tipo };
                     const loc = data.location;
                     const idx = data.index || 0;
                     if (loc === 'grid-equipments') gridEquipamentos[idx] = item;
@@ -413,6 +416,29 @@
                     else if (equippedItems.hasOwnProperty(loc)) equippedItems[loc] = item;
                 });
             } catch (e) { console.error(e); }
+        }
+
+        // --- MECÂNICA DRAG AND DROP ---
+        function handleDragStart(e, gridId, index) {
+            itemSendoArrastado = { gridId, index };
+        }
+
+        async function handleDrop(e, gridDestinoId, indexDestino) {
+            e.preventDefault();
+            if (!itemSendoArrastado) return;
+
+            const gridOrigem = getGridArray(itemSendoArrastado.gridId);
+            const gridDestino = getGridArray(gridDestinoId);
+
+            const itemMovido = gridOrigem[itemSendoArrastado.index];
+            const itemNoDestino = gridDestino[indexDestino];
+
+            gridDestino[indexDestino] = itemMovido;
+            gridOrigem[itemSendoArrastado.index] = itemNoDestino.id ? itemNoDestino : {};
+
+            itemSendoArrastado = null;
+            atualizarTudo();
+            await salvarInventarioNoFirebase();
         }
 
         // --- Lógica Interface ---
@@ -465,8 +491,18 @@
                 slotDiv.className = 'grid-slot';
                 slotDiv.dataset.gridId = gridId;
                 slotDiv.dataset.index = i;
+
+                slotDiv.ondragover = (e) => e.preventDefault();
+                slotDiv.ondrop = (e) => handleDrop(e, gridId, i);
+
                 if (item && item.id) {
-                    slotDiv.innerHTML = `<img src="${item.img}" draggable="false">${criarMenuGrid(gridId, i, item)}`;
+                    const img = document.createElement('img');
+                    img.src = item.img;
+                    img.draggable = true; 
+                    img.ondragstart = (e) => handleDragStart(e, gridId, i);
+                    
+                    slotDiv.appendChild(img);
+                    slotDiv.insertAdjacentHTML('beforeend', criarMenuGrid(gridId, i, item));
                 }
                 grid.appendChild(slotDiv);
             }
@@ -476,7 +512,12 @@
             let menu = `<div class="item-menu">
                 <button onclick="equiparItem('${gridId}', ${index})">Equipar</button>
                 <button onclick="excluirItem('${gridId}', ${index})">Excluir</button>`;
-            if (gridId !== 'grid-adventurer') menu += `<button onclick="moverParaMochila('${gridId}', ${index})">Mochila</button>`;
+            if (gridId !== 'grid-adventurer') {
+                menu += `<button onclick="moverParaMochila('${gridId}', ${index})">Mochila</button>`;
+            } else if (modoAtual === "adm") {
+                // SÓ APARECE NO MODO ADM DENTRO DA MOCHILA
+                menu += `<button onclick="devolverParaGrid(${index})">Devolver</button>`;
+            }
             menu += `</div>`;
             return menu;
         }
@@ -528,6 +569,27 @@
             }
         }
 
+        // --- NOVO: Devolver da Mochila para o Grid correspondente ---
+        async function devolverParaGrid(index) {
+            let item = gridMochila[index];
+            let destinoGrid;
+
+            // Lógica de destino baseada no tipo do item vindo da lista.js
+            if (item.tipo === "Equipamento") destinoGrid = gridEquipamentos;
+            else if (item.tipo === "Item") destinoGrid = gridItens;
+            else if (item.tipo === "Material") destinoGrid = gridMateriais;
+            else destinoGrid = gridEquipamentos; // Fallback
+
+            let idxDestino = destinoGrid.findIndex(s => !s.id);
+            if (idxDestino !== -1) {
+                destinoGrid[idxDestino] = item;
+                gridMochila[index] = {};
+                await salvarInventarioNoFirebase();
+                fecharMenus();
+                atualizarTudo();
+            }
+        }
+
         function atualizarEquipados() {
             const map = { head: '.slot-head', left_hand: '.slot-left-hand', shoulder: '.slot-shoulder', legs: '.slot-legs' };
             for (const [slot, query] of Object.entries(map)) {
@@ -544,7 +606,10 @@
         function verificarSetCompleto() {
             const vid = document.querySelector('.character-video');
             const full = equippedItems.head.id && equippedItems.left_hand.id && equippedItems.shoulder.id && equippedItems.legs.id;
-            vid.src = full ? 'https://www.dropbox.com/scl/fi/pivdefvi0ldfn8fpl7n9e/vid_download_20260505194159_501935.mp4?rlkey=9ddppb2oq67ydzegbgnuqc553&st=9sam6d35&raw=1' : 'https://www.dropbox.com/scl/fi/rs8zvfldjjbpq3qsiiwzh/lv_0_20260504020207.mp4?rlkey=t0ghvqvj3caif79f8gr28b8sy&st=e02pb33e&raw=1';
+            const novaUrl = full ? 'https://www.dropbox.com/scl/fi/pivdefvi0ldfn8fpl7n9e/vid_download_20260505194159_501935.mp4?rlkey=9ddppb2oq67ydzegbgnuqc553&st=9sam6d35&raw=1' : 'https://www.dropbox.com/scl/fi/rs8zvfldjjbpq3qsiiwzh/lv_0_20260504020207.mp4?rlkey=t0ghvqvj3caif79f8gr28b8sy&st=e02pb33e&raw=1';
+            if (vid.src !== novaUrl) {
+                vid.src = novaUrl;
+            }
         }
 
         function fecharMenus() {
@@ -556,9 +621,22 @@
         async function adicionarItemDaLista() {
             const sel = document.getElementById('select-item');
             const itemBase = window.bancoDeItens[sel.value];
-            let idx = gridEquipamentos.findIndex(s => !s.id);
+            
+            // Define para qual grid vai o item novo com base no tipo
+            let targetGrid;
+            if (itemBase.tipo === "Equipamento") targetGrid = gridEquipamentos;
+            else if (itemBase.tipo === "Item") targetGrid = gridItens;
+            else if (itemBase.tipo === "Material") targetGrid = gridMateriais;
+            else targetGrid = gridEquipamentos;
+
+            let idx = targetGrid.findIndex(s => !s.id);
             if (idx !== -1) {
-                gridEquipamentos[idx] = { id: Date.now(), nome: itemBase.nome, img: itemBase.img || itemBase.imagem };
+                targetGrid[idx] = { 
+                    id: Date.now(), 
+                    nome: itemBase.nome, 
+                    img: itemBase.img || itemBase.imagem,
+                    tipo: itemBase.tipo // Guardamos o tipo para saber devolver depois
+                };
                 await salvarInventarioNoFirebase();
                 atualizarTudo();
             }
