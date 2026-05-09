@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventário - RPG</title>
     <style>
+        /* Reset e Bloqueio de Seleção Azul */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            /* Remove o destaque azul de seleção em qualquer navegador */
             outline: none !important;
             -webkit-tap-highlight-color: transparent !important;
         }
@@ -46,7 +46,7 @@
             pointer-events: auto;
         }
 
-        /* POP-UP CUSTOMIZADO GIGANTE */
+        /* --- POP-UP CUSTOMIZADO GIGANTE --- */
         .modal-popup {
             display: none;
             position: fixed;
@@ -54,15 +54,15 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.9); /* Fundo mais escuro para focar no item */
+            background-color: rgba(0, 0, 0, 0.9);
             z-index: 2000;
             justify-content: center;
             align-items: center;
         }
 
         .popup-content {
-            width: 850px; /* Aumentado consideravelmente */
-            height: 850px; /* Aumentado consideravelmente */
+            width: 850px;
+            height: 850px;
             background-image: url('https://i.imgur.com/CerhE8m.png');
             background-size: contain;
             background-repeat: no-repeat;
@@ -73,11 +73,13 @@
             justify-content: center;
         }
 
+        /* AQUI VOCÊ CONFIGURA A IMAGEM DENTRO DA MOLDURA */
         .popup-item-img {
-            width: 280px; /* Item maior dentro da moldura */
-            height: 280px;
+            width: 280px;        /* Largura da imagem no pop-up */
+            height: 280px;       /* Altura da imagem no pop-up */
+            margin-top: -30px;   /* Ajuste para subir ou descer a imagem no quadrado */
+            margin-left: 0px;    /* Ajuste para os lados se precisar */
             object-fit: contain;
-            margin-top: -30px; /* Ajuste para o quadrado da sua moldura */
             filter: drop-shadow(0 0 15px rgba(230, 126, 34, 0.5));
         }
 
@@ -95,10 +97,19 @@
             transition: 0.2s;
             text-transform: uppercase;
         }
+        .btn-close-popup:hover { transform: scale(1.1); background: #e74c3c; }
 
-        .btn-close-popup:hover { background: #e74c3c; transform: scale(1.1); }
+        /* --- SLOTS E EFEITOS DE ZOOM --- */
+        .slot, .grid-slot, .action-button {
+            transition: transform 0.2s ease-in-out;
+            cursor: pointer;
+        }
 
-        /* Estilos do Menu e Grids */
+        .slot:hover, .grid-slot:hover, .action-button:hover {
+            transform: scale(1.08); /* O ZOOM QUE VOCÊ QUERIA */
+            z-index: 5;
+        }
+
         .mode-container {
             position: absolute;
             top: 4%;
@@ -117,19 +128,8 @@
             text-align: center;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
         }
-
         .mode-adm { background-color: #c0392b; color: white; }
         .mode-player { background-color: #27ae60; color: white; }
-
-        .btn-mode {
-            background-color: #333;
-            color: #fff;
-            border: 1px solid #555;
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-        }
 
         .add-item-container {
             position: absolute;
@@ -155,12 +155,7 @@
             height: 550px; 
             z-index: 1;
         }
-
-        .character-video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
+        .character-video { width: 100%; height: 100%; object-fit: contain; }
 
         .slot {
             width: 90px;
@@ -171,12 +166,10 @@
             background-position: center;
             position: absolute;
             z-index: 2;
-            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-
         .slot img { width: 60%; height: 60%; object-fit: contain; pointer-events: none; }
 
         .slot-head { top: 15%; left: 15%; }
@@ -197,7 +190,6 @@
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -242,13 +234,11 @@
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            cursor: pointer;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-
         .grid-slot img { width: 55%; height: 55%; object-fit: contain; pointer-events: none; }
 
         .item-menu {
@@ -266,23 +256,16 @@
             flex-direction: column;
             gap: 5px;
         }
-
         .item-menu button {
-            background: #333;
-            color: #fff;
-            border: none;
-            padding: 6px;
-            font-size: 11px;
-            cursor: pointer;
-            text-align: left;
-            width: 100%;
+            background: #333; color: #fff; border: none; padding: 6px;
+            font-size: 11px; cursor: pointer; text-align: left; width: 100%;
         }
 
+        /* Estados de Overlay */
         .overlay-active .slot, .overlay-active .action-button, .overlay-active .grid-slot {
             pointer-events: none;
             filter: brightness(0.6);
         }
-
         .overlay-active .inventory-overlay { display: block; }
         .overlay-active .grid-slot.active-slot, .overlay-active .slot.active-slot {
             pointer-events: auto;
@@ -372,12 +355,9 @@
             img.src = item.img || item.imagem;
             document.getElementById('custom-popup').style.display = 'flex';
         }
+        function fecharPopup() { document.getElementById('custom-popup').style.display = 'none'; }
 
-        function fecharPopup() {
-            document.getElementById('custom-popup').style.display = 'none';
-        }
-
-        // --- Variáveis ---
+        // --- Grids ---
         function getEmptyGrid() { let g = []; for(let i=0; i<16; i++) g.push({}); return g; }
         let gridEquipamentos = getEmptyGrid();
         let gridMochila = getEmptyGrid();
@@ -435,7 +415,7 @@
             } catch (e) { console.error(e); }
         }
 
-        // --- Interface ---
+        // --- Lógica Interface ---
         function alternarModo() {
             const badge = document.getElementById('badge-modo');
             const botoesTopo = document.getElementById('botoes-topo');
@@ -493,7 +473,7 @@
         }
 
         function criarMenuGrid(gridId, index, item) {
-            let menu = `<div class="item-menu" id="menu-${item.id}">
+            let menu = `<div class="item-menu">
                 <button onclick="equiparItem('${gridId}', ${index})">Equipar</button>
                 <button onclick="excluirItem('${gridId}', ${index})">Excluir</button>`;
             if (gridId !== 'grid-adventurer') menu += `<button onclick="moverParaMochila('${gridId}', ${index})">Mochila</button>`;
