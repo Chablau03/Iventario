@@ -17,12 +17,11 @@
             overflow: hidden;
             background-color: #000;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            -webkit-touch-callout: none; /* Previne o menu de contexto e salvamento em mobile/touch */
-            -webkit-user-select: none;   /* Previne seleção de texto */
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
             user-select: none;
         }
 
-        /* Moldura original da Calculadora (Full Screen) */
         .inventory-frame {
             width: 100vw;
             height: 100vh;
@@ -32,7 +31,6 @@
             position: relative;
         }
 
-        /* Overlay para desativar a tela ao abrir o menu */
         .inventory-overlay {
             display: none;
             position: absolute;
@@ -45,7 +43,66 @@
             pointer-events: auto;
         }
 
-        /* Container do modo de jogo e controle de acesso */
+        /* Pop-up Customizado */
+        .modal-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .popup-content {
+            width: 500px;
+            height: 500px;
+            background-image: url('https://i.imgur.com/CerhE8m.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-item-img {
+            width: 140px; 
+            height: 140px;
+            object-fit: contain;
+            /* Ajuste o margin-top para centralizar a imagem no quadradinho da moldura */
+            margin-top: -20px; 
+        }
+
+        .popup-item-name {
+            color: #ffffff;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px #000;
+            margin-top: 25px;
+            font-size: 20px;
+            text-transform: uppercase;
+        }
+
+        .btn-close-popup {
+            position: absolute;
+            bottom: 45px;
+            background: #c0392b;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .btn-close-popup:hover { background: #e74c3c; }
+
         .mode-container {
             position: absolute;
             top: 4%;
@@ -65,15 +122,8 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
         }
 
-        .mode-adm {
-            background-color: #c0392b;
-            color: white;
-        }
-
-        .mode-player {
-            background-color: #27ae60;
-            color: white;
-        }
+        .mode-adm { background-color: #c0392b; color: white; }
+        .mode-player { background-color: #27ae60; color: white; }
 
         .btn-mode {
             background-color: #333;
@@ -83,15 +133,9 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
-            transition: background 0.2s;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
         }
 
-        .btn-mode:hover {
-            background-color: #444;
-        }
-
-        /* Menu de adição da lista */
         .add-item-container {
             position: absolute;
             bottom: 4%;
@@ -105,47 +149,8 @@
             flex-direction: column;
             gap: 8px;
             width: 220px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
         }
 
-        .add-item-container h3 {
-            color: #e67e22;
-            font-size: 13px;
-            text-align: center;
-            margin-bottom: 2px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-        }
-
-        .add-item-container select {
-            background: #111;
-            color: #fff;
-            border: 1px solid #444;
-            padding: 6px;
-            border-radius: 4px;
-            font-size: 11px;
-            outline: none;
-            width: 100%;
-        }
-
-        .add-item-container button {
-            background-color: #e67e22;
-            color: #ffffff;
-            border: none;
-            padding: 8px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 12px;
-            cursor: pointer;
-            transition: background 0.2s;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-            width: 100%;
-        }
-
-        .add-item-container button:hover {
-            background-color: #d35400;
-        }
-
-        /* Container do Vídeo do Personagem (Lado Esquerdo) */
         .character-container {
             position: absolute;
             top: 50%;
@@ -160,10 +165,8 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            background: transparent; 
         }
 
-        /* Slots de Equipamento ao redor do personagem */
         .slot {
             width: 90px;
             height: 90px;
@@ -174,31 +177,18 @@
             position: absolute;
             z-index: 2;
             cursor: pointer;
-            transition: transform 0.2s;
-            outline: none;
-            -webkit-tap-highlight-color: transparent;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .slot:hover {
-            transform: scale(1.08);
-        }
-
-        .slot img {
-            width: 60%;
-            height: 60%;
-            object-fit: contain;
-            pointer-events: none; /* Evita que o navegador arraste a imagem do slot */
-        }
+        .slot img { width: 60%; height: 60%; object-fit: contain; pointer-events: none; }
 
         .slot-head { top: 15%; left: 15%; }
         .slot-left-hand { top: 45%; left: 10%; }
         .slot-shoulder { top: 30%; left: 28%; }
         .slot-legs { top: 60%; left: 28%; }
 
-        /* Container dos botões de ação */
         .buttons-container {
             position: absolute;
             top: 6%;
@@ -213,21 +203,12 @@
             background-repeat: no-repeat;
             background-position: center;
             cursor: pointer;
-            transition: transform 0.2s;
-            outline: none;
-            -webkit-tap-highlight-color: transparent;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 14px;
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-        }
-
-        .action-button:hover {
-            transform: scale(1.08);
         }
 
         .backpack-button {
@@ -246,7 +227,6 @@
             height: 180px;
         }
 
-        /* Container dos Grids do Inventário */
         .inventory-grid {
             position: absolute;
             top: 22%;
@@ -268,27 +248,14 @@
             background-repeat: no-repeat;
             background-position: center;
             cursor: pointer;
-            transition: transform 0.2s;
-            outline: none;
-            -webkit-tap-highlight-color: transparent;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .grid-slot:hover {
-            transform: scale(1.03);
-        }
+        .grid-slot img { width: 55%; height: 55%; object-fit: contain; pointer-events: none; }
 
-        .grid-slot img {
-            width: 55%;
-            height: 55%;
-            object-fit: contain;
-            pointer-events: none; /* Bloqueia ações nativas de arrastar a imagem pelo navegador */
-        }
-
-        /* Menu de opções do item */
         .item-menu {
             display: none;
             position: absolute;
@@ -300,7 +267,6 @@
             border-radius: 6px;
             padding: 6px;
             z-index: 105;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
             width: 160px;
             flex-direction: column;
             gap: 5px;
@@ -311,33 +277,19 @@
             color: #fff;
             border: none;
             padding: 6px;
-            border-radius: 4px;
             font-size: 11px;
             cursor: pointer;
             text-align: left;
             width: 100%;
         }
 
-        .item-menu button:hover {
-            background: #444;
-        }
-
-        /* ESTADOS DE DESATIVAÇÃO E DESTAQUE */
-        .overlay-active .slot,
-        .overlay-active .action-button,
-        .overlay-active .mode-container,
-        .overlay-active .grid-slot,
-        .overlay-active .slot {
+        .overlay-active .slot, .overlay-active .action-button, .overlay-active .grid-slot {
             pointer-events: none;
             filter: brightness(0.6);
         }
 
-        .overlay-active .inventory-overlay {
-            display: block;
-        }
-
-        .overlay-active .grid-slot.active-slot,
-        .overlay-active .slot.active-slot {
+        .overlay-active .inventory-overlay { display: block; }
+        .overlay-active .grid-slot.active-slot, .overlay-active .slot.active-slot {
             pointer-events: auto;
             filter: none;
             z-index: 100;
@@ -350,7 +302,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDJ8TOv0bkTE7my0VEVv1LtPIkukGPhKbM",
@@ -368,145 +320,13 @@
         
         window.db = db;
         window.collection = collection;
-        window.addDoc = addDoc;
         window.setDoc = setDoc;
         window.doc = doc;
         window.deleteDoc = deleteDoc;
         window.getDocs = getDocs;
-        console.log("Banco de dados conectado!");
-    </script>
-
-    <script>
-        async function salvarInventarioNoFirebase() {
-            if (typeof window.db === 'undefined') return;
-            try {
-                const querySnapshot = await window.getDocs(window.collection(window.db, "inventario"));
-                for (const docSnap of querySnapshot.docs) {
-                    await window.deleteDoc(window.doc(window.db, "inventario", docSnap.id));
-                }
-
-                for (let i = 0; i < 16; i++) {
-                    if (gridEquipamentos[i] && gridEquipamentos[i].id) {
-                        await window.setDoc(window.doc(window.db, "inventario", String(gridEquipamentos[i].id)), {
-                            ...gridEquipamentos[i],
-                            location: 'grid-equipments',
-                            index: i
-                        });
-                    }
-                    if (gridMochila[i] && gridMochila[i].id) {
-                        await window.setDoc(window.doc(window.db, "inventario", String(gridMochila[i].id)), {
-                            ...gridMochila[i],
-                            location: 'grid-adventurer',
-                            index: i
-                        });
-                    }
-                    if (gridItens[i] && gridItens[i].id) {
-                        await window.setDoc(window.doc(window.db, "inventario", String(gridItens[i].id)), {
-                            ...gridItens[i],
-                            location: 'grid-items',
-                            index: i
-                        });
-                    }
-                    if (gridMateriais[i] && gridMateriais[i].id) {
-                        await window.setDoc(window.doc(window.db, "inventario", String(gridMateriais[i].id)), {
-                            ...gridMateriais[i],
-                            location: 'grid-materials',
-                            index: i
-                        });
-                    }
-                }
-
-                for (const [key, item] of Object.entries(equippedItems)) {
-                    if (item && item.id) {
-                        await window.setDoc(window.doc(window.db, "inventario", String(item.id)), {
-                            ...item,
-                            location: key,
-                            index: 0
-                        });
-                    }
-                }
-            } catch (e) {
-                console.error("Erro ao salvar inventário completo:", e);
-            }
-        }
-
-        async function carregarDoFirebase() {
-            if (typeof window.db === 'undefined') return;
-            try {
-                gridEquipamentos = getEmptyGrid();
-                gridMochila = getEmptyGrid();
-                gridItens = getEmptyGrid();
-                gridMateriais = getEmptyGrid();
-                equippedItems = {
-                    head: {},
-                    left_hand: {},
-                    shoulder: {},
-                    legs: {}
-                };
-
-                const querySnapshot = await window.getDocs(window.collection(window.db, "inventario"));
-                querySnapshot.forEach((doc) => {
-                    const itemData = doc.data();
-                    const item = {
-                        id: itemData.id,
-                        nome: itemData.nome,
-                        tipo: itemData.tipo,
-                        valor: itemData.valor,
-                        img: itemData.imagem || itemData.img,
-                        origemGrid: itemData.origemGrid
-                    };
-
-                    const loc = itemData.location;
-                    const idx = itemData.index || 0;
-
-                    if (loc === 'grid-equipments' && idx < 16) {
-                        gridEquipamentos[idx] = item;
-                    } else if (loc === 'grid-adventurer' && idx < 16) {
-                        gridMochila[idx] = item;
-                    } else if (loc === 'grid-items' && idx < 16) {
-                        gridItens[idx] = item;
-                    } else if (loc === 'grid-materials' && idx < 16) {
-                        gridMateriais[idx] = item;
-                    } else if (['head', 'left_hand', 'shoulder', 'legs'].includes(loc)) {
-                        equippedItems[loc] = item;
-                    }
-                });
-            } catch (e) {
-                console.error("Erro ao inicializar inventário: ", e);
-            }
-        }
-
-        async function adicionarItemDaLista() {
-            const select = document.getElementById('select-item');
-            const indexSelecionado = select.value;
-            const itemOriginal = window.bancoDeItens[indexSelecionado];
-
-            if (!itemOriginal) {
-                alert("Nenhum item selecionado ou lista vazia.");
-                return;
-            }
-
-            const novoItem = {
-                id: Date.now() + Math.random(),
-                nome: itemOriginal.nome,
-                tipo: itemOriginal.tipo,
-                valor: itemOriginal.valor,
-                img: itemOriginal.img || itemOriginal.imagem
-            };
-
-            const index = gridEquipamentos.findIndex(slot => !slot.id);
-            if (index !== -1) {
-                gridEquipamentos[index] = novoItem;
-                await salvarInventarioNoFirebase();
-                atualizarTudo();
-            } else {
-                alert("Inventário cheio! Exclua um item antes de adicionar outro.");
-            }
-        }
     </script>
 
     <div class="inventory-frame">
-        
         <div id="inventory-overlay" class="inventory-overlay" onclick="fecharMenus()"></div>
 
         <div class="mode-container">
@@ -515,10 +335,9 @@
         </div>
 
         <div class="add-item-container">
-            <h3>Adicionar Item da Lista</h3>
-            <select id="select-item">
-                </select>
-            <button onclick="adicionarItemDaLista()">Adicionar</button>
+            <h3>Adicionar Item</h3>
+            <select id="select-item"></select>
+            <button onclick="adicionarItemDaLista()" style="background:#e67e22; color:white; border:none; padding:5px; cursor:pointer;">Adicionar</button>
         </div>
 
         <div class="character-container">
@@ -530,89 +349,136 @@
         <div class="slot slot-shoulder" title="Equipamento de Braço"></div>
         <div class="slot slot-legs" title="Calças"></div>
 
-        <div class="action-button backpack-button" title="Inventário do Aventureiro" onclick="showGrid('grid-adventurer')"></div>
+        <div class="action-button backpack-button" onclick="showGrid('grid-adventurer')"></div>
 
         <div id="botoes-topo" class="buttons-container">
-            <div class="action-button default-action-button" title="Equipamentos" onclick="showGrid('grid-equipments')">Equipamento</div>
-            <div class="action-button default-action-button" title="Itens" onclick="showGrid('grid-items')">Item</div>
-            <div class="action-button default-action-button" title="Materiais" onclick="showGrid('grid-materials')">Materiais</div>
+            <div class="action-button default-action-button" onclick="showGrid('grid-equipments')">Equipamento</div>
+            <div class="action-button default-action-button" onclick="showGrid('grid-items')">Item</div>
+            <div class="action-button default-action-button" onclick="showGrid('grid-materials')">Materiais</div>
         </div>
 
         <div id="grid-adventurer" class="inventory-grid" style="display: none;"></div>
         <div id="grid-equipments" class="inventory-grid" style="display: grid;"></div>
         <div id="grid-items" class="inventory-grid" style="display: none;"></div>
         <div id="grid-materials" class="inventory-grid" style="display: none;"></div>
+    </div>
 
+    <div id="custom-popup" class="modal-popup" onclick="fecharPopup()">
+        <div class="popup-content" onclick="event.stopPropagation()">
+            <img id="popup-img" class="popup-item-img" src="" alt="">
+            <div id="popup-name" class="popup-item-name"></div>
+            <button class="btn-close-popup" onclick="fecharPopup()">FECHAR</button>
+        </div>
     </div>
 
     <script>
-        function getEmptyGrid() {
-            let grid = [];
-            for (let i = 0; i < 16; i++) {
-                grid.push({});
-            }
-            return grid;
+        // --- Lógica do Pop-up ---
+        function abrirPopup(item) {
+            if (!item || !item.id) return;
+            const img = document.getElementById('popup-img');
+            const name = document.getElementById('popup-name');
+            img.src = item.img || item.imagem;
+            name.textContent = item.nome;
+            document.getElementById('custom-popup').style.display = 'flex';
         }
 
+        function fecharPopup() {
+            document.getElementById('custom-popup').style.display = 'none';
+        }
+
+        // --- Variáveis Globais ---
+        function getEmptyGrid() { let g = []; for(let i=0; i<16; i++) g.push({}); return g; }
         let gridEquipamentos = getEmptyGrid();
         let gridMochila = getEmptyGrid();
         let gridItens = getEmptyGrid();
         let gridMateriais = getEmptyGrid();
-
-        let equippedItems = {
-            head: {},
-            left_hand: {},
-            shoulder: {},
-            legs: {}
-        };
-
+        let equippedItems = { head: {}, left_hand: {}, shoulder: {}, legs: {} };
         let modoAtual = "adm";
 
+        // --- Funções Firebase ---
+        async function salvarInventarioNoFirebase() {
+            if (!window.db) return;
+            try {
+                const querySnapshot = await window.getDocs(window.collection(window.db, "inventario"));
+                for (const dSnap of querySnapshot.docs) await window.deleteDoc(window.doc(window.db, "inventario", dSnap.id));
+
+                const grids = [
+                    {arr: gridEquipamentos, loc: 'grid-equipments'},
+                    {arr: gridMochila, loc: 'grid-adventurer'},
+                    {arr: gridItens, loc: 'grid-items'},
+                    {arr: gridMateriais, loc: 'grid-materials'}
+                ];
+
+                for (const g of grids) {
+                    for (let i=0; i<16; i++) {
+                        if (g.arr[i].id) {
+                            await window.setDoc(window.doc(window.db, "inventario", String(g.arr[i].id)), {
+                                ...g.arr[i], location: g.loc, index: i
+                            });
+                        }
+                    }
+                }
+
+                for (const [key, item] of Object.entries(equippedItems)) {
+                    if (item.id) {
+                        await window.setDoc(window.doc(window.db, "inventario", String(item.id)), {
+                            ...item, location: key, index: 0
+                        });
+                    }
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function carregarDoFirebase() {
+            if (!window.db) return;
+            try {
+                const querySnapshot = await window.getDocs(window.collection(window.db, "inventario"));
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const item = { id: data.id, nome: data.nome, tipo: data.tipo, valor: data.valor, img: data.imagem || data.img, origemGrid: data.origemGrid };
+                    const loc = data.location;
+                    const idx = data.index || 0;
+
+                    if (loc === 'grid-equipments') gridEquipamentos[idx] = item;
+                    else if (loc === 'grid-adventurer') gridMochila[idx] = item;
+                    else if (loc === 'grid-items') gridItens[idx] = item;
+                    else if (loc === 'grid-materials') gridMateriais[idx] = item;
+                    else if (equippedItems.hasOwnProperty(loc)) equippedItems[loc] = item;
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        // --- Interface e Modos ---
         function alternarModo() {
             const badge = document.getElementById('badge-modo');
             const botoesTopo = document.getElementById('botoes-topo');
-
             if (modoAtual === "adm") {
                 modoAtual = "aventureiro";
                 badge.className = "mode-badge mode-player";
                 badge.textContent = "Modo Aventureiro Ativo";
                 botoesTopo.style.display = "none";
-                
-                fecharMenus();
                 showGrid('grid-adventurer');
             } else {
                 modoAtual = "adm";
                 badge.className = "mode-badge mode-adm";
                 badge.textContent = "Modo ADM Ativo";
                 botoesTopo.style.display = "flex";
-                
-                showGrid('grid-adventurer');
             }
+            fecharMenus();
             atualizarTudo();
         }
 
         function showGrid(gridId) {
             if (modoAtual === "aventureiro" && gridId !== 'grid-adventurer') return;
-
-            const grids = document.querySelectorAll('.inventory-grid');
-            grids.forEach(grid => {
-                grid.style.display = 'none';
-            });
-
-            const targetGrid = document.getElementById(gridId);
-            if (targetGrid) {
-                targetGrid.style.display = 'grid';
-            }
+            document.querySelectorAll('.inventory-grid').forEach(g => g.style.display = 'none');
+            document.getElementById(gridId).style.display = 'grid';
         }
 
         function getGridArray(gridId) {
-            switch(gridId) {
-                case 'grid-equipments': return gridEquipamentos;
-                case 'grid-adventurer': return gridMochila;
-                case 'grid-items': return gridItens;
-                case 'grid-materials': return gridMateriais;
-                default: return gridEquipamentos;
-            }
+            if(gridId === 'grid-adventurer') return gridMochila;
+            if(gridId === 'grid-items') return gridItens;
+            if(gridId === 'grid-materials') return gridMateriais;
+            return gridEquipamentos;
         }
 
         function atualizarTudo() {
@@ -626,410 +492,157 @@
         function renderGrid(gridId, itemsArray) {
             const grid = document.getElementById(gridId);
             grid.innerHTML = '';
-            
             for (let i = 0; i < 16; i++) {
                 const item = itemsArray[i];
                 const slotDiv = document.createElement('div');
                 slotDiv.className = 'grid-slot';
                 slotDiv.dataset.gridId = gridId;
                 slotDiv.dataset.index = i;
-                
                 if (item && item.id) {
-                    slotDiv.title = item.nome;
-                    slotDiv.setAttribute('draggable', 'true');
-                    slotDiv.innerHTML = `
-                        <img src="${item.img || item.imagem}" alt="${item.nome}" draggable="false">
-                        ${criarMenuGrid(gridId, i, item)}
-                    `;
-                } else {
-                    slotDiv.title = "Slot Vazio";
-                    slotDiv.setAttribute('draggable', 'false');
+                    slotDiv.innerHTML = `<img src="${item.img}" draggable="false">${criarMenuGrid(gridId, i, item)}`;
                 }
-                
                 grid.appendChild(slotDiv);
             }
         }
 
         function criarMenuGrid(gridId, index, item) {
-            let menuHtml = `
-                <div class="item-menu" id="menu-${item.id}-${index}">
-                    <button class="btn-equipar" data-grid="${gridId}" data-index="${index}">Equipar</button>
-                    <button class="btn-excluir" data-grid="${gridId}" data-index="${index}">Excluir</button>
-            `;
-            
-            if (gridId === 'grid-adventurer') {
-                if (modoAtual !== "aventureiro") {
-                    menuHtml += `<button class="btn-mover-original" data-index="${index}">Mover para Categoria</button>`;
-                }
-            } else {
-                menuHtml += `<button class="btn-mover" data-grid="${gridId}" data-index="${index}">Mover para Mochila</button>`;
-            }
-            
-            menuHtml += `</div>`;
-            return menuHtml;
-        }
-
-        function getSlotForItem(item) {
-            const nome = item.nome ? item.nome.toLowerCase() : "";
-            if (nome.includes('capuz') || nome.includes('gorro') || nome.includes('capacete')) {
-                return 'head';
-            } else if (nome.includes('luva') || nome.includes('mão') || nome.includes('braço')) {
-                return 'left_hand';
-            } else if (nome.includes('peitoral') || nome.includes('manto')) {
-                return 'shoulder';
-            } else if (nome.includes('calça')) {
-                return 'legs';
-            }
-            return 'shoulder'; 
+            let menu = `<div class="item-menu" id="menu-${item.id}">
+                <button onclick="equiparItem('${gridId}', ${index})">Equipar</button>
+                <button onclick="excluirItem('${gridId}', ${index})">Excluir</button>`;
+            if (gridId !== 'grid-adventurer') menu += `<button onclick="moverParaMochila('${gridId}', ${index})">Mochila</button>`;
+            menu += `</div>`;
+            return menu;
         }
 
         async function equiparItem(gridId, index) {
-            if (modoAtual !== "adm" && gridId !== 'grid-adventurer') return;
-            
             let fromArray = getGridArray(gridId);
             let item = fromArray[index];
+            const nome = item.nome.toLowerCase();
+            let slot = 'shoulder';
+            if (nome.includes('capuz') || nome.includes('capacete')) slot = 'head';
+            else if (nome.includes('luva') || nome.includes('mão')) slot = 'left_hand';
+            else if (nome.includes('calça')) slot = 'legs';
 
-            if (item && item.id) {
-                let slotName = getSlotForItem(item);
-                
-                let existingItem = equippedItems[slotName];
-                if (existingItem && existingItem.id) {
-                    fromArray[index] = existingItem;
-                } else {
-                    fromArray[index] = {};
-                }
+            let temp = equippedItems[slot];
+            equippedItems[slot] = item;
+            fromArray[index] = temp.id ? temp : {};
+            await salvarInventarioNoFirebase();
+            fecharMenus();
+            atualizarTudo();
+        }
 
-                equippedItems[slotName] = item;
-                equippedItems[slotName].origemGrid = gridId; 
-
+        async function desequiparItem(slot) {
+            let item = equippedItems[slot];
+            let idx = gridMochila.findIndex(s => !s.id);
+            if (idx !== -1) {
+                gridMochila[idx] = item;
+                equippedItems[slot] = {};
                 await salvarInventarioNoFirebase();
+                fecharMenus();
+                atualizarTudo();
             }
-            fecharMenus();
-            atualizarTudo();
-        }
-
-        async function desequiparItem(slotName) {
-            if (modoAtual !== "adm" && modoAtual !== "aventureiro") return;
-            
-            let item = equippedItems[slotName];
-            if (item && item.id) {
-                let targetIndex = gridMochila.findIndex(slot => !slot.id);
-                
-                if (targetIndex !== -1) {
-                    gridMochila[targetIndex] = item;
-                    equippedItems[slotName] = {};
-                    await salvarInventarioNoFirebase();
-                } else {
-                    alert("A Mochila está cheia!");
-                }
-            }
-            fecharMenus();
-            atualizarTudo();
-        }
-
-        async function moverParaMochila(fromGrid, index) {
-            if (modoAtual !== "adm") return;
-            let fromArray = getGridArray(fromGrid);
-            let item = fromArray[index];
-            
-            if (item && item.id) {
-                let targetIndex = gridMochila.findIndex(slot => !slot.id);
-                if (targetIndex !== -1) {
-                    item.origemGrid = fromGrid; 
-                    gridMochila[targetIndex] = item;
-                    fromArray[index] = {};
-                    await salvarInventarioNoFirebase();
-                    atualizarTudo();
-                }
-            }
-            fecharMenus();
-        }
-
-        async function moverItemParaOrigem(index) {
-            if (modoAtual !== "adm") return;
-            let item = gridMochila[index];
-            
-            if (item && item.id) {
-                let targetGrid = 'grid-equipments'; 
-                
-                if (item.tipo) {
-                    const tipo = item.tipo.toLowerCase();
-                    if (tipo.includes('equipamento') || tipo.includes('arma') || tipo.includes('armadura')) {
-                        targetGrid = 'grid-equipments';
-                    } else if (tipo.includes('item') || tipo.includes('consumivel') || tipo.includes('poção')) {
-                        targetGrid = 'grid-items';
-                    } else if (tipo.includes('material') || tipo.includes('recurso')) {
-                        targetGrid = 'grid-materials';
-                    }
-                } else {
-                    targetGrid = item.origemGrid || 'grid-equipments';
-                }
-                
-                let targetArray = getGridArray(targetGrid);
-                let targetIndex = targetArray.findIndex(slot => !slot.id);
-                
-                if (targetIndex !== -1) {
-                    targetArray[targetIndex] = item;
-                    gridMochila[index] = {};
-                    await salvarInventarioNoFirebase();
-                    atualizarTudo();
-                } else {
-                    alert("A área de destino selecionada está cheia!");
-                }
-            }
-            fecharMenus();
         }
 
         async function excluirItem(gridId, index) {
-            if (modoAtual !== "adm" && gridId !== 'grid-adventurer') return;
-            
-            let grid = getGridArray(gridId);
-            let item = grid[index];
-            
-            if (item && item.id) {
-                grid[index] = {};
-                await salvarInventarioNoFirebase();
-            }
-            
+            getGridArray(gridId)[index] = {};
+            await salvarInventarioNoFirebase();
             fecharMenus();
             atualizarTudo();
         }
 
-        function atualizarEquipados() {
-            const slots = {
-                'Cabeça': document.querySelector('.slot-head'),
-                'Mão Esquerda': document.querySelector('.slot-left-hand'),
-                'Equipamento de Braço': document.querySelector('.slot-shoulder'),
-                'Calças': document.querySelector('.slot-legs')
-            };
-
-            for (const [title, element] of Object.entries(slots)) {
-                element.innerHTML = '';
-                element.title = title;
+        async function moverParaMochila(gridId, index) {
+            let item = getGridArray(gridId)[index];
+            let idx = gridMochila.findIndex(s => !s.id);
+            if (idx !== -1) {
+                gridMochila[idx] = item;
+                getGridArray(gridId)[index] = {};
+                await salvarInventarioNoFirebase();
+                fecharMenus();
+                atualizarTudo();
             }
+        }
 
-            for (const [key, item] of Object.entries(equippedItems)) {
-                if (item && item.id) {
-                    let element = null;
-                    if (key === 'head') element = slots['Cabeça'];
-                    else if (key === 'left_hand') element = slots['Mão Esquerda'];
-                    else if (key === 'shoulder') element = slots['Equipamento de Braço'];
-                    else if (key === 'legs') element = slots['Calças'];
-
-                    if (element) {
-                        element.innerHTML = `
-                            <img src="${item.img || item.imagem}" alt="${item.nome}" draggable="false">
-                            <div class="item-menu" id="menu-equip-${key}">
-                                <button class="btn-desequipar" data-slot="${key}">Desequipar</button>
-                            </div>
-                        `;
-                        element.title = item.nome;
-                    }
+        function atualizarEquipados() {
+            const map = { head: '.slot-head', left_hand: '.slot-left-hand', shoulder: '.slot-shoulder', legs: '.slot-legs' };
+            for (const [slot, query] of Object.entries(map)) {
+                const el = document.querySelector(query);
+                el.innerHTML = '';
+                if (equippedItems[slot].id) {
+                    el.innerHTML = `<img src="${equippedItems[slot].img}" draggable="false">
+                    <div class="item-menu"><button onclick="desequiparItem('${slot}')">Desequipar</button></div>`;
                 }
             }
-
             verificarSetCompleto();
         }
 
         function verificarSetCompleto() {
-            const videoElement = document.querySelector('.character-video');
-            
-            const isSetComplete = 
-                equippedItems.head.id && 
-                equippedItems.left_hand.id && 
-                equippedItems.shoulder.id && 
-                equippedItems.legs.id;
-            
-            const setCompletoUrl = 'https://www.dropbox.com/scl/fi/pivdefvi0ldfn8fpl7n9e/vid_download_20260505194159_501935.mp4?rlkey=9ddppb2oq67ydzegbgnuqc553&st=9sam6d35&raw=1';
-            const setPadraoUrl = 'https://www.dropbox.com/scl/fi/rs8zvfldjjbpq3qsiiwzh/lv_0_20260504020207.mp4?rlkey=t0ghvqvj3caif79f8gr28b8sy&st=e02pb33e&raw=1';
-
-            if (isSetComplete) {
-                if (!videoElement.src.includes('pivdefvi0ldfn8fpl7n9e')) {
-                    videoElement.src = setCompletoUrl;
-                    videoElement.load();
-                    videoElement.play().catch(e => console.log('Erro ao reproduzir vídeo:', e));
-                }
-            } else {
-                if (!videoElement.src.includes('rs8zvfldjjbpq3qsiiwzh')) {
-                    videoElement.src = setPadraoUrl;
-                    videoElement.load();
-                    videoElement.play().catch(e => console.log('Erro ao reproduzir vídeo:', e));
-                }
-            }
+            const vid = document.querySelector('.character-video');
+            const full = equippedItems.head.id && equippedItems.left_hand.id && equippedItems.shoulder.id && equippedItems.legs.id;
+            const urlFull = 'https://www.dropbox.com/scl/fi/pivdefvi0ldfn8fpl7n9e/vid_download_20260505194159_501935.mp4?rlkey=9ddppb2oq67ydzegbgnuqc553&st=9sam6d35&raw=1';
+            const urlBase = 'https://www.dropbox.com/scl/fi/rs8zvfldjjbpq3qsiiwzh/lv_0_20260504020207.mp4?rlkey=t0ghvqvj3caif79f8gr28b8sy&st=e02pb33e&raw=1';
+            vid.src = full ? urlFull : urlBase;
         }
 
         function fecharMenus() {
-            const frame = document.querySelector('.inventory-frame');
-            if (frame) {
-                frame.classList.remove('overlay-active');
-            }
-
+            document.querySelector('.inventory-frame').classList.remove('overlay-active');
             document.querySelectorAll('.item-menu').forEach(m => m.style.display = 'none');
-
-            document.querySelectorAll('.grid-slot, .slot').forEach(s => {
-                s.classList.remove('active-slot');
-                s.style.zIndex = '';
-            });
+            document.querySelectorAll('.grid-slot, .slot').forEach(s => s.classList.remove('active-slot'));
         }
 
-        // Bloqueio de menus de contexto do navegador
-        document.addEventListener('contextmenu', (e) => {
-            e.preventDefault(); // Previne o menu de clique do botão direito
-        });
-
-        // Mecânica de Arrastar e Soltar (Drag and Drop)
-        document.addEventListener('dragstart', (e) => {
-            const slot = e.target.closest('.grid-slot');
-            if (slot && slot.querySelector('img')) {
-                e.dataTransfer.setData('text/plain', JSON.stringify({
-                    gridId: slot.dataset.gridId,
-                    index: slot.dataset.index
-                }));
-                slot.style.opacity = '0.5';
-            } else {
-                e.preventDefault();
-            }
-        });
-
-        document.addEventListener('dragend', (e) => {
-            const slot = e.target.closest('.grid-slot');
-            if (slot) {
-                slot.style.opacity = '';
-            }
-        });
-
-        document.addEventListener('dragover', (e) => {
-            e.preventDefault();
-        });
-
-        document.addEventListener('drop', async (e) => {
-            e.preventDefault();
-            const slot = e.target.closest('.grid-slot');
-            if (!slot) return;
-
-            const targetGridId = slot.dataset.gridId;
-            const targetIndex = parseInt(slot.dataset.index);
-
-            try {
-                const sourceData = JSON.parse(e.dataTransfer.getData('text/plain'));
-                const sourceGridId = sourceData.gridId;
-                const sourceIndex = parseInt(sourceData.index);
-
-                // Se o modo for aventureiro, só permite soltar no grid da mochila
-                if (modoAtual === "aventureiro" && targetGridId !== 'grid-adventurer') return;
-
-                let sourceArray = getGridArray(sourceGridId);
-                let targetArray = getGridArray(targetGridId);
-
-                let sourceItem = sourceArray[sourceIndex];
-                let targetItem = targetArray[targetIndex];
-
-                // Realiza a troca (ou move se o destino estiver vazio)
-                sourceArray[sourceIndex] = targetItem;
-                targetArray[targetIndex] = sourceItem;
-
+        async function adicionarItemDaLista() {
+            const sel = document.getElementById('select-item');
+            const itemBase = window.bancoDeItens[sel.value];
+            let idx = gridEquipamentos.findIndex(s => !s.id);
+            if (idx !== -1) {
+                gridEquipamentos[idx] = { id: Date.now(), nome: itemBase.nome, img: itemBase.img || itemBase.imagem, tipo: itemBase.tipo };
                 await salvarInventarioNoFirebase();
                 atualizarTudo();
-            } catch (err) {
-                console.error("Erro ao movimentar o item:", err);
+            }
+        }
+
+        // --- Bloqueios e Eventos ---
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        
+        document.addEventListener('dblclick', (e) => {
+            const slot = e.target.closest('.grid-slot') || e.target.closest('.slot');
+            if (slot) {
+                let item = null;
+                if (slot.classList.contains('slot')) {
+                    if (slot.classList.contains('slot-head')) item = equippedItems.head;
+                    else if (slot.classList.contains('slot-left-hand')) item = equippedItems.left_hand;
+                    else if (slot.classList.contains('slot-shoulder')) item = equippedItems.shoulder;
+                    else if (slot.classList.contains('slot-legs')) item = equippedItems.legs;
+                } else {
+                    item = getGridArray(slot.dataset.gridId)[slot.dataset.index];
+                }
+                if (item && item.id) abrirPopup(item);
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            const slot = e.target.closest('.grid-slot') || e.target.closest('.slot');
+            if (slot && !e.target.closest('.item-menu')) {
+                fecharMenus();
+                const menu = slot.querySelector('.item-menu');
+                if (menu) {
+                    document.querySelector('.inventory-frame').classList.add('overlay-active');
+                    slot.classList.add('active-slot');
+                    menu.style.display = 'flex';
+                }
+            } else if (!e.target.closest('.item-menu')) {
+                fecharMenus();
             }
         });
 
         document.addEventListener("DOMContentLoaded", async () => {
             await carregarDoFirebase();
             atualizarTudo();
-
-            const select = document.getElementById('select-item');
-            select.innerHTML = '';
-            
-            if (typeof window.bancoDeItens !== 'undefined' && window.bancoDeItens.length > 0) {
-                window.bancoDeItens.forEach((item, index) => {
-                    const option = document.createElement('option');
-                    option.value = index;
-                    option.textContent = item.nome;
-                    select.appendChild(option);
+            const sel = document.getElementById('select-item');
+            if (window.bancoDeItens) {
+                window.bancoDeItens.forEach((it, i) => {
+                    let opt = document.createElement('option'); opt.value = i; opt.textContent = it.nome; sel.appendChild(opt);
                 });
-            } else {
-                console.error("Arquivo lista.js não carregado ou lista vazia.");
             }
-
-            document.addEventListener('click', (e) => {
-                if (e.target.closest('.item-menu')) {
-                    const btn = e.target;
-                    
-                    if (btn.classList.contains('btn-equipar')) {
-                        e.stopPropagation();
-                        fecharMenus();
-                        equiparItem(btn.dataset.grid, parseInt(btn.dataset.index));
-                    } else if (btn.classList.contains('btn-excluir')) {
-                        e.stopPropagation();
-                        fecharMenus();
-                        excluirItem(btn.dataset.grid, parseInt(btn.dataset.index));
-                    } else if (btn.classList.contains('btn-mover')) {
-                        e.stopPropagation();
-                        fecharMenus();
-                        moverParaMochila(btn.dataset.grid, parseInt(btn.dataset.index));
-                    } else if (btn.classList.contains('btn-mover-original')) {
-                        e.stopPropagation();
-                        fecharMenus();
-                        moverItemParaOrigem(parseInt(btn.dataset.index));
-                    } else if (btn.classList.contains('btn-desequipar')) {
-                        e.stopPropagation();
-                        fecharMenus();
-                        desequiparItem(btn.dataset.slot);
-                    }
-                    return;
-                }
-
-                const slot = e.target.closest('.grid-slot') || e.target.closest('.slot');
-                if (slot) {
-                    e.stopPropagation();
-                    
-                    if (slot.classList.contains('slot')) {
-                        if (!slot.querySelector('img')) return;
-
-                        const menu = slot.querySelector('.item-menu');
-                        if (menu && menu.style.display === 'flex') {
-                            fecharMenus();
-                        } else {
-                            fecharMenus();
-                            const frame = document.querySelector('.inventory-frame');
-                            if (frame) {
-                                frame.classList.add('overlay-active');
-                            }
-                            slot.classList.add('active-slot');
-                            slot.style.zIndex = '100';
-                            if (menu) {
-                                menu.style.display = 'flex';
-                            }
-                        }
-                        return;
-                    }
-
-                    if (modoAtual === "aventureiro" && !slot.closest('#grid-adventurer')) return;
-
-                    const menu = slot.querySelector('.item-menu');
-                    if (menu && menu.style.display === 'flex') {
-                        fecharMenus();
-                    } else {
-                        fecharMenus();
-
-                        const frame = document.querySelector('.inventory-frame');
-                        if (frame) {
-                            frame.classList.add('overlay-active');
-                        }
-
-                        slot.classList.add('active-slot');
-                        slot.style.zIndex = '100';
-
-                        if (menu) {
-                            menu.style.display = 'flex';
-                        }
-                    }
-                } else {
-                    fecharMenus();
-                }
-            });
         });
     </script>
 </body>
