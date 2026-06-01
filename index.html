@@ -3,280 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventário - RPG</title>
+    <title>Inventário - RPG Completo</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+
     <style>
-        /* Reset e Bloqueio de Seleção Azul */
+        /* ========================================================
+           ESTILOS ORIGINAIS DO INVENTÁRIO (SISTEMA DE GRIDS)
+           ======================================================== */
         * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            outline: none !important;
-            -webkit-tap-highlight-color: transparent !important;
+            box-sizing: border-box; margin: 0; padding: 0;
+            outline: none !important; -webkit-tap-highlight-color: transparent !important;
         }
 
         body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #000;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
+            width: 100%; height: 100%; overflow: hidden;
+            background-color: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
         }
 
         .inventory-frame {
-            width: 100vw;
-            height: 100vh;
+            width: 100vw; height: 100vh;
             background-image: url('https://i.imgur.com/Zkj2oFh.png');
-            background-size: 100% 100%;
-            background-position: center;
-            position: relative;
+            background-size: 100% 100%; background-position: center; position: relative;
         }
 
         .inventory-overlay {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.4);
-            z-index: 1;
-            pointer-events: auto;
+            display: none; position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4);
+            z-index: 1; pointer-events: auto;
         }
 
-        /* --- POP-UP CUSTOMIZADO GIGANTE --- */
-        .modal-popup {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .popup-content {
-            width: 850px;
-            height: 850px;
-            background-image: url('https://i.imgur.com/CerhE8m.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* AQUI VOCÊ CONFIGURA A IMAGEM DENTRO DA MOLDURA */
-        .popup-item-img {
-            width: 280px;        /* Largura da imagem no pop-up */
-            height: 280px;       /* Altura da imagem no pop-up */
-            margin-top: -30px;   /* Ajuste para subir ou descer a imagem no quadrado */
-            margin-left: 0px;    /* Ajuste para os lados se precisar */
-            object-fit: contain;
-            filter: drop-shadow(0 0 15px rgba(230, 126, 34, 0.5));
-        }
-
-        .btn-close-popup {
-            position: absolute;
-            bottom: 10%;
-            background: #c0392b;
-            color: white;
-            border: 2px solid #fff;
-            padding: 10px 30px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
-            transition: 0.2s;
-            text-transform: uppercase;
-        }
-        .btn-close-popup:hover { transform: scale(1.1); background: #e74c3c; }
-
-        /* --- SLOTS E EFEITOS DE ZOOM --- */
-        .slot, .grid-slot, .action-button {
-            transition: transform 0.2s ease-in-out;
-            cursor: pointer;
-        }
-
-        .slot:hover, .grid-slot:hover, .action-button:hover {
-            transform: scale(1.08); /* O ZOOM QUE VOCÊ QUERIA */
-            z-index: 5;
-        }
+        .slot, .grid-slot, .action-button { transition: transform 0.2s ease-in-out; cursor: pointer; }
+        .slot:hover, .grid-slot:hover, .action-button:hover { transform: scale(1.08); z-index: 5; }
 
         .mode-container {
-            position: absolute;
-            top: 4%;
-            left: 4%;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+            position: absolute; top: 4%; left: 4%; z-index: 10;
+            display: flex; flex-direction: column; gap: 8px;
         }
 
         .mode-badge {
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 14px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+            padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 14px;
+            text-align: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
         }
         .mode-adm { background-color: #c0392b; color: white; }
         .mode-player { background-color: #27ae60; color: white; }
 
         .add-item-container {
-            position: absolute;
-            bottom: 4%;
-            left: 4%;
-            z-index: 10;
-            background: rgba(34, 34, 34, 0.95);
-            border: 1px solid #e67e22;
-            padding: 12px;
-            border-radius: 6px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            width: 220px;
+            position: absolute; bottom: 4%; left: 4%; z-index: 10;
+            background: rgba(34, 34, 34, 0.95); border: 1px solid #e67e22;
+            padding: 12px; border-radius: 6px; display: flex; flex-direction: column; gap: 8px; width: 220px;
         }
 
         .character-container {
-            position: absolute;
-            top: 50%;
-            left: 25%;
-            transform: translate(-50%, -50%);
-            width: 450px; 
-            height: 550px; 
-            z-index: 1;
+            position: absolute; top: 50%; left: 25%; transform: translate(-50%, -50%);
+            width: 450px; height: 550px; z-index: 1;
         }
         .character-video { width: 100%; height: 100%; object-fit: contain; }
 
         .slot {
-            width: 90px;
-            height: 90px;
+            width: 90px; height: 90px;
             background-image: url('https://i.imgur.com/Gi1TwZ7.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            position: absolute;
-            z-index: 2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            position: absolute; z-index: 2; display: flex; align-items: center; justify-content: center;
         }
-        .slot img { width: 60%; height: 60%; object-fit: contain; pointer-events: none; }
+        
+        /* CORREÇÃO DO TAMANHO DA IMAGEM NO BONECO */
+        .slot img { 
+            width: 50%; 
+            height: 50%; 
+            max-width: 55px; 
+            max-height: 55px; 
+            object-fit: contain; 
+            pointer-events: none; 
+        }
 
         .slot-head { top: 15%; left: 15%; }
         .slot-left-hand { top: 45%; left: 10%; }
         .slot-shoulder { top: 30%; left: 28%; }
         .slot-legs { top: 60%; left: 28%; }
 
-        .buttons-container {
-            position: absolute;
-            top: 6%;
-            right: 9%;
-            display: flex;
-            gap: 15px;
-            z-index: 2;
-        }
+        .buttons-container { position: absolute; top: 6%; right: 9%; display: flex; gap: 15px; z-index: 2; }
 
         .action-button {
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            display: flex; align-items: center; justify-content: center;
+            color: #ffffff; font-weight: bold; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
         }
 
         .backpack-button {
             background-image: url('https://i.imgur.com/ucaeaSj.png');
-            width: 140px;
-            height: 140px;
-            position: absolute;
-            top: 10%;
-            left: 42%;
-            z-index: 10;
+            width: 140px; height: 140px; position: absolute; top: 10%; left: 42%; z-index: 10;
         }
 
-        .default-action-button {
-            background-image: url('https://i.imgur.com/sK5SnCa.png');
-            width: 180px;
-            height: 180px;
-        }
+        .default-action-button { background-image: url('https://i.imgur.com/sK5SnCa.png'); width: 180px; height: 180px; }
 
         .inventory-grid {
-            position: absolute;
-            top: 22%;
-            right: 18%;
-            width: 530px;
-            height: 640px;
-            display: grid;
-            grid-template-columns: repeat(4, 120px);
-            grid-template-rows: repeat(4, 120px);
-            gap: 40px;
-            z-index: 2;
+            position: absolute; top: 22%; right: 18%; width: 530px; height: 640px;
+            display: grid; grid-template-columns: repeat(4, 120px); grid-template-rows: repeat(4, 120px); gap: 40px; z-index: 2;
         }
 
         .grid-slot {
-            width: 220px;
-            height: 220px;
-            background-image: url('https://i.imgur.com/b0XLgVU.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 220px; height: 220px; background-image: url('https://i.imgur.com/b0XLgVU.png');
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            position: relative; display: flex; align-items: center; justify-content: center;
         }
-        .grid-slot img { width: 55%; height: 55%; object-fit: contain; pointer-events: auto; }
+        
+        /* CORREÇÃO DO TAMANHO DA IMAGEM NO INVENTÁRIO */
+        .grid-slot img { 
+            width: 45%; 
+            height: 45%; 
+            max-width: 110px; 
+            max-height: 110px; 
+            object-fit: contain; 
+            pointer-events: auto; 
+        }
 
         .item-menu {
-            display: none;
-            position: absolute;
-            top: 95%;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #222;
-            border: 1px solid #444;
-            border-radius: 6px;
-            padding: 6px;
-            z-index: 105;
-            width: 160px;
-            flex-direction: column;
-            gap: 5px;
+            display: none; position: absolute; top: 95%; left: 50%; transform: translateX(-50%);
+            background-color: #222; border: 1px solid #444; border-radius: 6px; padding: 6px; z-index: 105; width: 160px; flex-direction: column; gap: 5px;
         }
         .item-menu button {
-            background: #333; color: #fff; border: none; padding: 6px;
-            font-size: 11px; cursor: pointer; text-align: left; width: 100%;
+            background: #333; color: #fff; border: none; padding: 6px; font-size: 11px; cursor: pointer; text-align: left; width: 100%;
         }
 
-        /* Estados de Overlay */
-        .overlay-active .slot, .overlay-active .action-button, .overlay-active .grid-slot {
-            pointer-events: none;
-            filter: brightness(0.6);
-        }
+        .overlay-active .slot, .overlay-active .action-button, .overlay-active .grid-slot { pointer-events: none; filter: brightness(0.6); }
         .overlay-active .inventory-overlay { display: block; }
-        .overlay-active .grid-slot.active-slot, .overlay-active .slot.active-slot {
-            pointer-events: auto;
-            filter: none;
-            z-index: 100;
+        .overlay-active .grid-slot.active-slot, .overlay-active .slot.active-slot { pointer-events: auto; filter: none; z-index: 100; }
+
+        /* ========================================================
+           ESTILOS DO PROTÓTIPO FINAL (POP-UP EXIBIÇÃO DE ITENS)
+           ======================================================== */
+        .overlay-popup {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: rgba(0, 0, 0, 0.9); z-index: 2000;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .cenario-teste {
+            position: relative; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .btn-fechar-popup {
+            position: absolute; top: 30px; right: 40px; z-index: 2010;
+            background-color: #c0392b; color: white; border: 2px solid #fff;
+            font-size: 24px; font-weight: bold; width: 50px; height: 50px;
+            border-radius: 50%; cursor: pointer; transition: 0.2s;
+        }
+        .btn-fechar-popup:hover { background-color: #e74c3c; transform: scale(1.1); }
+
+        .wrapper-mostruario { transform: scale(0.65); transform-origin: center; pointer-events: none; }
+
+        .mostruario-conteudo {
+            width: 1400px; height: 1400px;
+            background-image: url('https://i.imgur.com/mdQ2qYb.png');
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            position: relative;
+        }
+
+        .popup-item-titulo {
+            position: absolute; top: 350px; left: 50%; transform: translateX(-50%);
+            font-size: 38px; color: #f39c12; font-weight: bold; text-align: center; width: 700px; text-transform: uppercase;
+            text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 4px 4px 6px #000;
+        }
+
+        .item-imagem {
+            position: absolute; top: 490px; left: 50%; transform: translateX(-50%);
+            height: 350px; max-width: 400px; object-fit: contain;
+            filter: drop-shadow(3px 5px 8px rgba(0,0,0,0.8)); 
+        }
+
+        .container-dados-fixo {
+            position: absolute; top: 878px; left: 63%; transform: translateX(-50%);
+            width: 850px; display: flex; align-items: flex-start;
+        }
+
+        .coluna-esquerda-custom { width: 239px; padding-right: 20px; transition: width 0.3s; }
+        .coluna-direita-custom { width: 400px; padding-left: 20px; }
+        .linha-vertical-custom { width: 2px; height: 160px; background-color: #8c6623; margin-top: 0px; }
+
+        .linha-texto, .encantamento-nome, .encantamento-efeito { 
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 2px 2px 3px #000; 
+        }
+        .linha-texto { margin-bottom: 4px; line-height: 1.2; font-size: 14px; }
+        .etiqueta { color: #fff; }
+        
+        .valor-dinamico { color: #f39c12; font-weight: bold; }
+        .valor-df { color: #f39c12; font-weight: bold; } 
+        .valor-dano-fisico { color: #e74c3c; font-weight: bold; } 
+        .valor-dm { color: #9b59b6; font-weight: bold; } 
+        .valor-dano-real { color: #ffffff; font-weight: bold; } 
+
+        .valor-cura { 
+            color: #39ff14; font-weight: bold; font-size: 1em; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .encantamento-nome { color: #9b59b6; font-weight: bold; font-size: 1em; margin-bottom: 4px; }
+        .encantamento-efeito { 
+            color: #a4b0be; font-size: 0.9em; font-style: italic; line-height: 1.3; 
+            max-height: 85px; overflow-y: auto; width: 105%; margin-left: -5px; padding-left: 10px; padding-right: 10px; padding-top: 2px; padding-bottom: 2px; margin-top: 5px; pointer-events: auto;
+        }
+
+        .encantamento-efeito::-webkit-scrollbar, .texto-lore::-webkit-scrollbar { width: 6px; }
+        .encantamento-efeito::-webkit-scrollbar-track, .texto-lore::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.5); border-radius: 3px; }
+        .encantamento-efeito::-webkit-scrollbar-thumb, .texto-lore::-webkit-scrollbar-thumb { background: #8c6623; border-radius: 3px; }
+
+        .estado-encantado { color: #9b59b6 !important; }
+        .estado-comum { color: #bdc3c7 !important; }
+
+        .texto-lore {
+            font-family: 'UnifrakturMaguntia', cursive; color: #000000; font-size: 1.5em; 
+            line-height: 1.3; margin-top: 2px; max-width: 40ch; max-height: 130px; 
+            overflow-y: auto; padding-left: 10px; padding-right: 15px; padding-bottom: 5px;
+            text-shadow: none; word-wrap: break-word; overflow-wrap: break-word; pointer-events: auto;
         }
     </style>
 </head>
 <body>
 
     <script src="lista.js"></script>
+    <script src="armas.js"></script>
+    <script src="pocoes.js"></script>
+    <script src="itens.js"></script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
@@ -340,25 +290,136 @@
         <div id="grid-materials" class="inventory-grid" style="display: none;"></div>
     </div>
 
-    <div id="custom-popup" class="modal-popup" onclick="fecharPopup()">
-        <div class="popup-content" onclick="event.stopPropagation()">
-            <img id="popup-img" class="popup-item-img" src="" alt="">
-            <button class="btn-close-popup" onclick="fecharPopup()">VOLTAR</button>
+    <div id="overlay-popup" class="overlay-popup" style="display: none;">
+        <div class="cenario-teste">
+            <button class="btn-fechar-popup" onclick="fecharPopup()">X</button>
+            <div class="wrapper-mostruario">
+                <div class="mostruario-conteudo">
+                    <div id="popup-nome" class="popup-item-titulo">Nome do Item</div>
+                    <img id="popup-imagem" class="item-imagem" src="" alt="">
+                    
+                    <div class="container-dados-fixo">
+                        <div id="coluna-esq" class="coluna-esquerda-custom">
+                            <div class="linha-texto"><span class="etiqueta">Tipo [</span><span id="popup-tipo" class="valor-dinamico">---</span><span class="etiqueta">]</span></div>
+                            <div id="popup-status-esquerda"></div>
+                        </div>
+                        
+                        <div id="linha-divisoria" class="linha-vertical-custom"></div>
+                        
+                        <div id="coluna-dir" class="coluna-direita-custom">
+                            <div class="linha-texto"><span class="etiqueta">Propriedade [</span><span id="popup-propriedade" class="valor-dinamico">---</span><span class="etiqueta">]</span></div>
+                            <div id="popup-container-encantamento"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         // --- Drag and Drop State ---
         let itemSendoArrastado = null;
+        window.todosOsItens = []; 
 
-        // --- Pop-up ---
-        function abrirPopup(item) {
-            if (!item || !item.id) return;
-            const img = document.getElementById('popup-img');
-            img.src = item.img || item.imagem;
-            document.getElementById('custom-popup').style.display = 'flex';
+        // --- Lógica do Pop-up Avançado ---
+        function abrirPopup(itemDaGrid) {
+            if (!itemDaGrid || !itemDaGrid.nome) return;
+
+            let itemCompleto = itemDaGrid;
+            
+            if (!itemCompleto.stats && !itemCompleto.descricao) {
+                let base = window.todosOsItens.find(i => i.nome === itemDaGrid.nome);
+                if (base) {
+                    itemCompleto = { ...base, ...itemDaGrid };
+                } else {
+                    itemCompleto = { nome: itemDaGrid.nome, imagem: itemDaGrid.img, categoria: itemDaGrid.tipo || "Geral", descricao: "Atributos desconhecidos." };
+                }
+            }
+
+            document.getElementById('overlay-popup').style.display = 'flex';
+            document.getElementById('popup-nome').textContent = itemCompleto.nome;
+            document.getElementById('popup-tipo').textContent = itemCompleto.tipo || itemCompleto.categoria || "---";
+            document.getElementById('popup-imagem').src = itemCompleto.imagem || itemCompleto.img || itemDaGrid.img;
+
+            const esq = document.getElementById('popup-status-esquerda');
+            const colEsqContainer = document.getElementById('coluna-esq');
+            const colDir = document.getElementById('coluna-dir');
+            const linhaDivisoria = document.getElementById('linha-divisoria');
+            
+            esq.innerHTML = ''; 
+            const cat = (itemCompleto.categoria || itemCompleto.tipo || "").toLowerCase();
+
+            if (cat === "equipamento" || cat === "arma" || cat === "armadura" || !cat) {
+                colDir.style.display = "block";
+                linhaDivisoria.style.display = "block";
+                colEsqContainer.style.width = "239px";
+
+                if(itemCompleto.stats && itemCompleto.stats.ca) { esq.innerHTML += `<div class="linha-texto"><span class="etiqueta">CA = </span><span class="valor-dinamico">${itemCompleto.stats.ca}</span></div>`; }
+                if(itemCompleto.stats && (itemCompleto.stats.df || itemCompleto.stats.dm)) {
+                    let linhaArmadura = `<div class="linha-texto"><span class="etiqueta">Armadura </span>`;
+                    if(itemCompleto.stats.df) linhaArmadura += `<span class="etiqueta">DF </span><span class="valor-df">(= ${itemCompleto.stats.df}) </span>`;
+                    if(itemCompleto.stats.dm) linhaArmadura += `<span class="etiqueta">DM </span><span class="valor-dm">(= ${itemCompleto.stats.dm})</span>`;
+                    linhaArmadura += `</div>`;
+                    esq.innerHTML += linhaArmadura;
+                }
+                if(itemCompleto.stats && (itemCompleto.stats.danoFisico || itemCompleto.stats.danoMagico || itemCompleto.stats.danoReal)) {
+                    let linhaDano = `<div class="linha-texto"><span class="etiqueta">Dano: </span>`;
+                    if(itemCompleto.stats.danoFisico) linhaDano += `<span class="valor-dano-fisico">${itemCompleto.stats.danoFisico} </span>`;
+                    if(itemCompleto.stats.danoMagico) linhaDano += `<span class="valor-dm">${itemCompleto.stats.danoMagico} </span>`;
+                    if(itemCompleto.stats.danoReal) linhaDano += `<span class="valor-dano-real">${itemCompleto.stats.danoReal} </span>`;
+                    linhaDano += `</div>`;
+                    esq.innerHTML += linhaDano;
+                }
+                if(itemCompleto.stats && itemCompleto.stats.efeito) { esq.innerHTML += `<div class="linha-texto"><span class="etiqueta">Efeito: </span><span class="valor-dinamico">${itemCompleto.stats.efeito}</span></div>`; }
+
+                if (itemCompleto.pericias) { itemCompleto.pericias.forEach(p => { esq.innerHTML += `<div class="linha-texto" style="color: #ffffff; font-weight: 500;">${p}</div>`; }); }
+
+                const elProp = document.getElementById('popup-propriedade');
+                const contEnc = document.getElementById('popup-container-encantamento');
+                contEnc.innerHTML = '';
+                
+                if(itemCompleto.propriedade === "Encantado" && itemCompleto.encantamento) {
+                    elProp.textContent = "Encantado"; elProp.className = "valor-dinamico estado-encantado";
+                    const efeitoFormatado = limitarTextoEmLinhas(itemCompleto.encantamento.efeito, 28);
+                    contEnc.innerHTML = `<div class="encantamento-nome">${itemCompleto.encantamento.nome}</div><div class="encantamento-efeito">${efeitoFormatado}</div>`;
+                } else {
+                    elProp.textContent = "Comum"; elProp.className = "valor-dinamico estado-comum";
+                }
+            } else {
+                colDir.style.display = "none";
+                linhaDivisoria.style.display = "none";
+                colEsqContainer.style.width = "100%";
+
+                let atributosEmbutidos = "";
+                if (itemCompleto.stats && itemCompleto.stats.cura) { atributosEmbutidos += `<span class="valor-cura">❤️ +${itemCompleto.stats.cura}</span> `; }
+                if (itemCompleto.stats && itemCompleto.stats.dano) { atributosEmbutidos += `<span class="valor-dano-fisico">💥 -${itemCompleto.stats.dano} Dano</span> `; }
+
+                esq.innerHTML = `
+                    <div class="texto-lore">
+                        ${atributosEmbutidos}${itemCompleto.descricao || ""}
+                    </div>
+                `;
+            }
         }
-        function fecharPopup() { document.getElementById('custom-popup').style.display = 'none'; }
+
+        function fecharPopup() { document.getElementById('overlay-popup').style.display = 'none'; }
+
+        function limitarTextoEmLinhas(texto, limiteChars = 28) {
+            if (!texto) return "";
+            const palavras = texto.split(" ");
+            let linhas = [];
+            let linhaAtual = "";
+            palavras.forEach(palavra => {
+                if ((linhaAtual + (linhaAtual ? " " : "") + palavra).length <= limiteChars) {
+                    linhaAtual += (linhaAtual ? " " : "") + palavra;
+                } else {
+                    linhas.push(linhaAtual);
+                    linhaAtual = palavra;
+                }
+            });
+            if (linhaAtual) linhas.push(linhaAtual);
+            return linhas.join("<br>");
+        }
 
         // --- Grids ---
         function getEmptyGrid() { let g = []; for(let i=0; i<16; i++) g.push({}); return g; }
@@ -406,7 +467,9 @@
                 const querySnapshot = await window.getDocs(window.collection(window.db, "inventario"));
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    const item = { id: data.id, nome: data.nome, img: data.imagem || data.img, tipo: data.tipo };
+                    let item = { ...data }; 
+                    if (!item.img && item.imagem) item.img = item.imagem;
+
                     const loc = data.location;
                     const idx = data.index || 0;
                     if (loc === 'grid-equipments') gridEquipamentos[idx] = item;
@@ -419,9 +482,7 @@
         }
 
         // --- MECÂNICA DRAG AND DROP ---
-        function handleDragStart(e, gridId, index) {
-            itemSendoArrastado = { gridId, index };
-        }
+        function handleDragStart(e, gridId, index) { itemSendoArrastado = { gridId, index }; }
 
         async function handleDrop(e, gridDestinoId, indexDestino) {
             e.preventDefault();
@@ -515,7 +576,6 @@
             if (gridId !== 'grid-adventurer') {
                 menu += `<button onclick="moverParaMochila('${gridId}', ${index})">Mochila</button>`;
             } else if (modoAtual === "adm") {
-                // SÓ APARECE NO MODO ADM DENTRO DA MOCHILA
                 menu += `<button onclick="devolverParaGrid(${index})">Devolver</button>`;
             }
             menu += `</div>`;
@@ -527,9 +587,9 @@
             let item = fromArray[index];
             const nome = item.nome.toLowerCase();
             let slot = 'shoulder';
-            if (nome.includes('capuz') || nome.includes('capacete')) slot = 'head';
-            else if (nome.includes('luva') || nome.includes('mão')) slot = 'left_hand';
-            else if (nome.includes('calça')) slot = 'legs';
+            if (nome.includes('capuz') || nome.includes('capacete') || nome.includes('elmo')) slot = 'head';
+            else if (nome.includes('luva') || nome.includes('mão') || nome.includes('manopla')) slot = 'left_hand';
+            else if (nome.includes('calça') || nome.includes('greva')) slot = 'legs';
             let temp = equippedItems[slot];
             equippedItems[slot] = item;
             fromArray[index] = temp.id ? temp : {};
@@ -569,16 +629,15 @@
             }
         }
 
-        // --- NOVO: Devolver da Mochila para o Grid correspondente ---
         async function devolverParaGrid(index) {
             let item = gridMochila[index];
             let destinoGrid;
+            const cat = (item.tipo || "").toLowerCase();
 
-            // Lógica de destino baseada no tipo do item vindo da lista.js
-            if (item.tipo === "Equipamento") destinoGrid = gridEquipamentos;
-            else if (item.tipo === "Item") destinoGrid = gridItens;
-            else if (item.tipo === "Material") destinoGrid = gridMateriais;
-            else destinoGrid = gridEquipamentos; // Fallback
+            if (cat === "equipamento" || cat === "arma" || cat === "armadura") destinoGrid = gridEquipamentos;
+            else if (cat === "consumivel" || cat === "poção" || cat === "item") destinoGrid = gridItens;
+            else if (cat === "material") destinoGrid = gridMateriais;
+            else destinoGrid = gridEquipamentos; 
 
             let idxDestino = destinoGrid.findIndex(s => !s.id);
             if (idxDestino !== -1) {
@@ -603,12 +662,37 @@
             verificarSetCompleto();
         }
 
+        // ==========================================================
+        // NOVO CÓDIGO DO DICIONÁRIO DE VÍDEOS
+        // ==========================================================
         function verificarSetCompleto() {
             const vid = document.querySelector('.character-video');
-            const full = equippedItems.head.id && equippedItems.left_hand.id && equippedItems.shoulder.id && equippedItems.legs.id;
-            const novaUrl = full ? 'https://www.dropbox.com/scl/fi/pivdefvi0ldfn8fpl7n9e/vid_download_20260505194159_501935.mp4?rlkey=9ddppb2oq67ydzegbgnuqc553&st=9sam6d35&raw=1' : 'https://www.dropbox.com/scl/fi/rs8zvfldjjbpq3qsiiwzh/lv_0_20260504020207.mp4?rlkey=t0ghvqvj3caif79f8gr28b8sy&st=e02pb33e&raw=1';
-            if (vid.src !== novaUrl) {
-                vid.src = novaUrl;
+            
+            // Vídeo padrão do boneco sem armadura completa
+            const videoPadrao = 'https://www.dropbox.com/scl/fi/rs8zvfldjjbpq3qsiiwzh/lv_0_20260504020207.mp4?rlkey=t0ghvqvj3caif79f8gr28b8sy&st=e02pb33e&raw=1';
+            let novaUrl = videoPadrao;
+
+            const h = equippedItems.head;
+            const l = equippedItems.left_hand;
+            const s = equippedItems.shoulder;
+            const leg = equippedItems.legs;
+
+            // 1. Confere se o cara tá vestindo alguma coisa nos 4 espaços
+            if (h.id && l.id && s.id && leg.id) {
+                
+                // 2. Confere se os 4 itens têm a etiqueta "nomeDoSet" e se formam exatamente o MESMO set
+                if (h.nomeDoSet && h.nomeDoSet === l.nomeDoSet && h.nomeDoSet === s.nomeDoSet && h.nomeDoSet === leg.nomeDoSet) {
+                    
+                    // 3. Vai lá no dicionário do .js e pega o link do vídeo correspondente a esse nome
+                    if (window.videosDosSets && window.videosDosSets[h.nomeDoSet]) {
+                        novaUrl = window.videosDosSets[h.nomeDoSet];
+                    }
+                }
+            }
+
+            // Se o link novo for diferente do que tá tocando agora, ele troca o vídeo
+            if (vid.src !== novaUrl) { 
+                vid.src = novaUrl; 
             }
         }
 
@@ -620,29 +704,31 @@
 
         async function adicionarItemDaLista() {
             const sel = document.getElementById('select-item');
-            const itemBase = window.bancoDeItens[sel.value];
+            const itemBase = window.todosOsItens[sel.value];
             
-            // Define para qual grid vai o item novo com base no tipo
-            let targetGrid;
-            if (itemBase.tipo === "Equipamento") targetGrid = gridEquipamentos;
-            else if (itemBase.tipo === "Item") targetGrid = gridItens;
-            else if (itemBase.tipo === "Material") targetGrid = gridMateriais;
-            else targetGrid = gridEquipamentos;
+            let targetGrid = gridEquipamentos;
+            let cat = (itemBase.categoria || itemBase.tipo || "").toLowerCase();
+            
+            if (cat === "equipamento" || cat === "arma" || cat === "armadura") targetGrid = gridEquipamentos;
+            else if (cat === "consumivel" || cat === "poção" || cat === "item") targetGrid = gridItens;
+            else if (cat === "material") targetGrid = gridMateriais;
 
             let idx = targetGrid.findIndex(s => !s.id);
             if (idx !== -1) {
-                targetGrid[idx] = { 
-                    id: Date.now(), 
-                    nome: itemBase.nome, 
-                    img: itemBase.img || itemBase.imagem,
-                    tipo: itemBase.tipo // Guardamos o tipo para saber devolver depois
-                };
+                let itemCompleto = JSON.parse(JSON.stringify(itemBase));
+                itemCompleto.id = Date.now();
+                itemCompleto.tipo = cat;
+                if(!itemCompleto.img) itemCompleto.img = itemCompleto.imagem;
+                
+                if(!itemCompleto.propriedade) itemCompleto.propriedade = "Comum";
+                if(!itemCompleto.encantamento) itemCompleto.encantamento = { nome: "", efeito: "" };
+
+                targetGrid[idx] = itemCompleto;
                 await salvarInventarioNoFirebase();
                 atualizarTudo();
             }
         }
 
-        // --- Eventos ---
         document.addEventListener('contextmenu', e => e.preventDefault());
         
         document.addEventListener('dblclick', (e) => {
@@ -677,15 +763,30 @@
         });
 
         document.addEventListener("DOMContentLoaded", async () => {
+            const l1 = typeof bancoDeItens !== 'undefined' ? bancoDeItens : [];
+            const l2 = typeof bancoDeArmas !== 'undefined' ? bancoDeArmas : [];
+            const l3 = typeof bancoDePocoes !== 'undefined' ? bancoDePocoes : [];
+            const l4 = typeof bancoDeItensGerais !== 'undefined' ? bancoDeItensGerais : [];
+            window.todosOsItens = [...l1, ...l2, ...l3, ...l4];
+
             await carregarDoFirebase();
             atualizarTudo();
+            
             const sel = document.getElementById('select-item');
-            if (window.bancoDeItens) {
-                window.bancoDeItens.forEach((it, i) => {
-                    let opt = document.createElement('option'); opt.value = i; opt.textContent = it.nome; sel.appendChild(opt);
+            if (window.todosOsItens.length > 0) {
+                window.todosOsItens.forEach((it, i) => {
+                    let opt = document.createElement('option'); 
+                    opt.value = i; 
+                    opt.textContent = it.nome; 
+                    sel.appendChild(opt);
                 });
+            } else {
+                let opt = document.createElement('option');
+                opt.textContent = "Erro ao carregar as listas de itens";
+                sel.appendChild(opt);
             }
         });
     </script>
 </body>
 </html>
+
