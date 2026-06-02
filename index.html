@@ -55,20 +55,63 @@
             padding: 12px; border-radius: 6px; display: flex; flex-direction: column; gap: 8px; width: 220px;
         }
 
+        /* CONTAINER DO PERSONAGEM (VÍDEO) */
         .character-container {
             position: absolute; top: 50%; left: 25%; transform: translate(-50%, -50%);
             width: 450px; height: 550px; z-index: 1;
+            background-color: #000000; /* Garante que fique tudo preto no fundo */
+            overflow: hidden;
+            border-radius: 10px;
         }
-        .character-video { width: 100%; height: 100%; object-fit: contain; }
+        
+        .character-video { 
+            width: 100%; height: 100%; object-fit: contain; 
+            opacity: 1;
+            transition: opacity 0.3s ease-in-out; /* Suaviza a aparição do vídeo */
+        }
+
+        /* ANIMAÇÃO DE LOADING DO VÍDEO */
+        .video-loader {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #000000; display: none; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 5;
+            color: #e67e22; font-weight: bold; font-size: 18px; gap: 15px;
+            letter-spacing: 2px;
+        }
+
+        .spinner {
+            width: 50px; height: 50px;
+            border: 5px solid rgba(230, 126, 34, 0.2);
+            border-top: 5px solid #e67e22;
+            border-radius: 50%;
+            animation: rodarSpinner 1s linear infinite;
+        }
+
+        @keyframes rodarSpinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ========================================================
+           POSICIONAMENTO DOS QUADRADOS DE ARMADURA (ALTERE AQUI!)
+           ======================================================== */
+        .equip-slots-container {
+            position: absolute;
+            top: 15%;            /* Altura inicial (Aumente ou diminua para descer/subir os itens) */
+            left: 5%;           /* Distância da borda esquerda da tela */
+            display: flex;
+            flex-direction: column;
+            gap: 90px;          /* Espaço entre as molduras (90px é exatamente o tamanho de 1 quadrado) */
+            z-index: 10;
+        }
 
         .slot {
             width: 90px; height: 90px;
             background-image: url('https://i.imgur.com/Gi1TwZ7.png');
             background-size: contain; background-repeat: no-repeat; background-position: center;
-            position: absolute; z-index: 2; display: flex; align-items: center; justify-content: center;
+            position: relative; display: flex; align-items: center; justify-content: center;
         }
         
-        /* CORREÇÃO DO TAMANHO DA IMAGEM NO BONECO */
         .slot img { 
             width: 50%; 
             height: 50%; 
@@ -77,11 +120,6 @@
             object-fit: contain; 
             pointer-events: none; 
         }
-
-        .slot-head { top: 15%; left: 15%; }
-        .slot-left-hand { top: 45%; left: 10%; }
-        .slot-shoulder { top: 30%; left: 28%; }
-        .slot-legs { top: 60%; left: 28%; }
 
         .buttons-container { position: absolute; top: 6%; right: 9%; display: flex; gap: 15px; z-index: 2; }
 
@@ -109,7 +147,6 @@
             position: relative; display: flex; align-items: center; justify-content: center;
         }
         
-        /* CORREÇÃO DO TAMANHO DA IMAGEM NO INVENTÁRIO */
         .grid-slot img { 
             width: 45%; 
             height: 45%; 
@@ -154,7 +191,8 @@
         }
         .btn-fechar-popup:hover { background-color: #e74c3c; transform: scale(1.1); }
 
-        .wrapper-mostruario { transform: scale(0.65); transform-origin: center; pointer-events: none; }
+        /* ZOOM GIGANTESCO (De 0.65 para 0.95) */
+        .wrapper-mostruario { transform: scale(0.95); transform-origin: center; pointer-events: none; }
 
         .mostruario-conteudo {
             width: 1400px; height: 1400px;
@@ -268,13 +306,19 @@
         </div>
 
         <div class="character-container">
-            <video class="character-video" src="https://www.dropbox.com/scl/fi/rs8zvfldjjbpq3qsiiwzh/lv_0_20260504020207.mp4?rlkey=t0ghvqvj3caif79f8gr28b8sy&st=e02pb33e&raw=1" autoplay loop muted playsinline></video>
+            <div id="video-loader" class="video-loader">
+                <span>CARREGANDO...</span>
+                <div class="spinner"></div>
+            </div>
+            <video id="character-video" class="character-video" src="https://www.dropbox.com/scl/fi/rs8zvfldjjbpq3qsiiwzh/lv_0_20260504020207.mp4?rlkey=t0ghvqvj3caif79f8gr28b8sy&st=e02pb33e&raw=1" autoplay loop muted playsinline></video>
         </div>
 
-        <div class="slot slot-head" title="Cabeça"></div>
-        <div class="slot slot-left-hand" title="Mão Esquerda"></div>
-        <div class="slot slot-shoulder" title="Equipamento de Braço"></div>
-        <div class="slot slot-legs" title="Calças"></div>
+        <div class="equip-slots-container">
+            <div class="slot slot-head" title="Cabeça"></div>
+            <div class="slot slot-shoulder" title="Peitoral"></div>
+            <div class="slot slot-left-hand" title="Luvas"></div>
+            <div class="slot slot-legs" title="Calças"></div>
+        </div>
 
         <div class="action-button backpack-button" onclick="showGrid('grid-adventurer')"></div>
 
@@ -356,11 +400,11 @@
 
                 if(itemCompleto.stats && itemCompleto.stats.ca) { esq.innerHTML += `<div class="linha-texto"><span class="etiqueta">CA = </span><span class="valor-dinamico">${itemCompleto.stats.ca}</span></div>`; }
                 if(itemCompleto.stats && (itemCompleto.stats.df || itemCompleto.stats.dm)) {
-                    let linhaArmadura = `<div class="linha-texto"><span class="etiqueta">Armadura </span>`;
-                    if(itemCompleto.stats.df) linhaArmadura += `<span class="etiqueta">DF </span><span class="valor-df">(= ${itemCompleto.stats.df}) </span>`;
-                    if(itemCompleto.stats.dm) linhaArmadura += `<span class="etiqueta">DM </span><span class="valor-dm">(= ${itemCompleto.stats.dm})</span>`;
-                    linhaArmadura += `</div>`;
-                    esq.innerHTML += linhaArmadura;
+                    let presidentialLine = `<div class="linha-texto"><span class="etiqueta">Armadura </span>`;
+                    if(itemCompleto.stats.df) presidentialLine += `<span class="etiqueta">DF </span><span class="valor-df">(= ${itemCompleto.stats.df}) </span>`;
+                    if(itemCompleto.stats.dm) presidentialLine += `<span class="etiqueta">DM </span><span class="valor-dm">(= ${itemCompleto.stats.dm})</span>`;
+                    presidentialLine += `</div>`;
+                    esq.innerHTML += presidentialLine;
                 }
                 if(itemCompleto.stats && (itemCompleto.stats.danoFisico || itemCompleto.stats.danoMagico || itemCompleto.stats.danoReal)) {
                     let linhaDano = `<div class="linha-texto"><span class="etiqueta">Dano: </span>`;
@@ -430,7 +474,7 @@
         let equippedItems = { head: {}, left_hand: {}, shoulder: {}, legs: {} };
         let modoAtual = "adm";
 
-        // --- Firebase ---
+        // --- Firebase (OTIMIZADO - SALVAMENTO SEM TRAVAR A TELA) ---
         async function salvarInventarioNoFirebase() {
             if (!window.db) return;
             try {
@@ -458,6 +502,7 @@
                         });
                     }
                 }
+                console.log("Banco de dados atualizado com sucesso!");
             } catch (e) { console.error(e); }
         }
 
@@ -481,10 +526,10 @@
             } catch (e) { console.error(e); }
         }
 
-        // --- MECÂNICA DRAG AND DROP ---
+        // --- MECÂNICA DRAG AND DROP (AÇÕES INSTANTÂNEAS) ---
         function handleDragStart(e, gridId, index) { itemSendoArrastado = { gridId, index }; }
 
-        async function handleDrop(e, gridDestinoId, indexDestino) {
+        function handleDrop(e, gridDestinoId, indexDestino) {
             e.preventDefault();
             if (!itemSendoArrastado) return;
 
@@ -499,7 +544,6 @@
 
             itemSendoArrastado = null;
             atualizarTudo();
-            await salvarInventarioNoFirebase();
         }
 
         // --- Lógica Interface ---
@@ -582,7 +626,7 @@
             return menu;
         }
 
-        async function equiparItem(gridId, index) {
+        function equiparItem(gridId, index) {
             let fromArray = getGridArray(gridId);
             let item = fromArray[index];
             const nome = item.nome.toLowerCase();
@@ -593,43 +637,39 @@
             let temp = equippedItems[slot];
             equippedItems[slot] = item;
             fromArray[index] = temp.id ? temp : {};
-            await salvarInventarioNoFirebase();
             fecharMenus();
             atualizarTudo();
         }
 
-        async function desequiparItem(slot) {
+        function desequiparItem(slot) {
             let item = equippedItems[slot];
             let idx = gridMochila.findIndex(s => !s.id);
             if (idx !== -1) {
                 gridMochila[idx] = item;
                 equippedItems[slot] = {};
-                await salvarInventarioNoFirebase();
                 fecharMenus();
                 atualizarTudo();
             }
         }
 
-        async function excluirItem(gridId, index) {
+        function excluirItem(gridId, index) {
             getGridArray(gridId)[index] = {};
-            await salvarInventarioNoFirebase();
             fecharMenus();
             atualizarTudo();
         }
 
-        async function moverParaMochila(gridId, index) {
+        function moverParaMochila(gridId, index) {
             let item = getGridArray(gridId)[index];
             let idx = gridMochila.findIndex(s => !s.id);
             if (idx !== -1) {
                 gridMochila[idx] = item;
                 getGridArray(gridId)[index] = {};
-                await salvarInventarioNoFirebase();
                 fecharMenus();
                 atualizarTudo();
             }
         }
 
-        async function devolverParaGrid(index) {
+        function devolverParaGrid(index) {
             let item = gridMochila[index];
             let destinoGrid;
             const cat = (item.tipo || "").toLowerCase();
@@ -643,7 +683,6 @@
             if (idxDestino !== -1) {
                 destinoGrid[idxDestino] = item;
                 gridMochila[index] = {};
-                await salvarInventarioNoFirebase();
                 fecharMenus();
                 atualizarTudo();
             }
@@ -662,13 +701,8 @@
             verificarSetCompleto();
         }
 
-        // ==========================================================
-        // NOVO CÓDIGO DO DICIONÁRIO DE VÍDEOS
-        // ==========================================================
         function verificarSetCompleto() {
-            const vid = document.querySelector('.character-video');
-            
-            // Vídeo padrão do boneco sem armadura completa
+            const vid = document.getElementById('character-video');
             const videoPadrao = 'https://www.dropbox.com/scl/fi/rs8zvfldjjbpq3qsiiwzh/lv_0_20260504020207.mp4?rlkey=t0ghvqvj3caif79f8gr28b8sy&st=e02pb33e&raw=1';
             let novaUrl = videoPadrao;
 
@@ -677,20 +711,14 @@
             const s = equippedItems.shoulder;
             const leg = equippedItems.legs;
 
-            // 1. Confere se o cara tá vestindo alguma coisa nos 4 espaços
             if (h.id && l.id && s.id && leg.id) {
-                
-                // 2. Confere se os 4 itens têm a etiqueta "nomeDoSet" e se formam exatamente o MESMO set
                 if (h.nomeDoSet && h.nomeDoSet === l.nomeDoSet && h.nomeDoSet === s.nomeDoSet && h.nomeDoSet === leg.nomeDoSet) {
-                    
-                    // 3. Vai lá no dicionário do .js e pega o link do vídeo correspondente a esse nome
                     if (window.videosDosSets && window.videosDosSets[h.nomeDoSet]) {
                         novaUrl = window.videosDosSets[h.nomeDoSet];
                     }
                 }
             }
 
-            // Se o link novo for diferente do que tá tocando agora, ele troca o vídeo
             if (vid.src !== novaUrl) { 
                 vid.src = novaUrl; 
             }
@@ -702,7 +730,7 @@
             document.querySelectorAll('.grid-slot, .slot').forEach(s => s.classList.remove('active-slot'));
         }
 
-        async function adicionarItemDaLista() {
+        function adicionarItemDaLista() {
             const sel = document.getElementById('select-item');
             const itemBase = window.todosOsItens[sel.value];
             
@@ -724,7 +752,6 @@
                 if(!itemCompleto.encantamento) itemCompleto.encantamento = { nome: "", efeito: "" };
 
                 targetGrid[idx] = itemCompleto;
-                await salvarInventarioNoFirebase();
                 atualizarTudo();
             }
         }
@@ -785,8 +812,33 @@
                 opt.textContent = "Erro ao carregar as listas de itens";
                 sel.appendChild(opt);
             }
+
+            // LÓGICA DE DETECÇÃO DE CARREGAMENTO DO VÍDEO
+            const vid = document.getElementById('character-video');
+            const loader = document.getElementById('video-loader');
+
+            // Quando o src muda e começa a carregar o novo vídeo
+            vid.addEventListener('loadstart', () => {
+                loader.style.display = 'flex';
+                vid.style.opacity = '0'; // Esconde o player quebrado/congelado
+            });
+
+            // Quando o navegador baixou o suficiente para rodar sem travar
+            vid.addEventListener('canplaythrough', () => {
+                loader.style.display = 'none';
+                vid.style.opacity = '1'; // Mostra o vídeo novo lindão
+            });
+
+            // TIMER: Salva no Firebase automaticamente a cada 3 minutos
+            setInterval(() => {
+                salvarInventarioNoFirebase();
+            }, 180000); 
+        });
+
+        // SAFETY NET: Salva se atualizar a página ou fechar a aba
+        window.addEventListener('beforeunload', () => {
+            salvarInventarioNoFirebase();
         });
     </script>
 </body>
 </html>
-
